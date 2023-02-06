@@ -41,7 +41,7 @@ def leerzeichen_entfernen(inp):
             count += 1
             out = out + inp[i]
         i += 1
-    print out
+    return out
 
 
 # ## Übung 3
