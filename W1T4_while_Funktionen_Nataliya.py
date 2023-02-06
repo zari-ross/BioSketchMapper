@@ -31,32 +31,34 @@ re.sub(' ', '', "Python     ist   toll  ") #, count=1
 
 # %%time
 inp = "Python     ist   toll  "
-i = 0
-out = ""
-count = 0
-while i < len(inp):
-    #print(inp[i])
-    if inp[i] != " ":
-        count += 1
-        out = out + inp[i]
-    i += 1
-print(out)
+def leerzeichen_entfernen(inp):
+    i = 0
+    out = ""
+    count = 0
+    while i < len(inp):
+        #print(inp[i])
+        if inp[i] != " ":
+            count += 1
+            out = out + inp[i]
+        i += 1
+    print out
 
 
 # ## Übung 3
 
 # %%time
 inp = "efwe78754we1e567wdw"
-i = 0
-out = ""
-count = 0
-while i < len(inp):
-#     print(ord(inp[i]))
-    if inp[i].isdigit(): # if 48 <= ord(inp[i]) <= 57:
-        count += 1
-        #out = out + inp[i]
-    i += 1
-print(count)
+def ziffern_zahlen(inp):
+    i = 0
+    out = ""
+    count = 0
+    while i < len(inp):
+    #     print(ord(inp[i]))
+        if inp[i].isdigit(): # if 48 <= ord(inp[i]) <= 57:
+            count += 1
+            #out = out + inp[i]
+        i += 1
+    return count
 
 
 # %%time
