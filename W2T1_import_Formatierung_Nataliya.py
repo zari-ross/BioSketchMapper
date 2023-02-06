@@ -89,10 +89,11 @@ f'{i:b}' - int als Binärzahl
 from W1T4_while_Funktionen_Nataliya import umdrehung, leerzeichen_entfernen, ziffern_zahlen, trimmen, check_prim
 
 def menu_func(inp):
-    print(f' 1 ... umdrehen \n 2 ... leerzeichen_entfernen \n 3 ... ziffern_zahlen \n 4 ... trimmen \n 5 ... beenden ')
-    eingabe = input(inp)
-    print(eingabe)
+    eingabe = -1
     while int(eingabe) != 0:
+        print(
+            f' 1 ... umdrehen \n 2 ... leerzeichen_entfernen \n 3 ... ziffern_zahlen \n 4 ... trimmen \n 0 ... beenden ')
+        eingabe = input(inp)
         if int(eingabe) == 1:
             print("check")
             s = input("Welcher String soll umgedreht werden? ")
@@ -106,9 +107,8 @@ def menu_func(inp):
         elif int(eingabe) == 4:
             s = input("Welcher String soll getrimmt werden? ")
             out = trimmen(s)
-        print(out)
-        eingabe = input(inp)
-        return "End"
+        print("---->", out, "<----", sep = "")
+    return "End"
 
 x = menu_func("Auswahl: ")
 print("Ergebnisse:", x)
