@@ -131,20 +131,20 @@ trimmen("    Python     ist   toll    ")
 # Um schneller zu machen, wir koennen sehen ob die Zahl gerade ist.
 
 # wert = int(input('Wert zu Überprüfung: '))
-def check_prim(wert):
-    i=wert
-    count = 0
-    while i > 0:
-        if wert%i == 0:
-            count += 1
-        i -= 1 
-    print(count)
-    if count == 2:
-        return True
-    else:
-        return False
-
-print(check_prim(59))
+# def check_prim(wert):
+#     i=wert
+#     count = 0
+#     while i > 0:
+#         if wert%i == 0:
+#             count += 1
+#         i -= 1 
+#     print(count)
+#     if count == 2:
+#         return True
+#     else:
+#         return False
+# 
+# print(check_prim(59))
 
 
 # better
@@ -156,12 +156,14 @@ def check_prim(wert):
         if wert%i == 0:
             count += 1
         i -= 1 
-    print(count)
+    # print(count)
     if count == 2:
         ist_prim = True
     else:
         ist_prim =  False
     return ist_prim
 
-print(check_prim(59))
+# print(check_prim(59))
 
+# wert = int(input('Wert zu Überprüfung: '))
+# print(check_prim(wert))
