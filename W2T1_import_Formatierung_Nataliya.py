@@ -85,3 +85,38 @@ f'{i:x}' - int als Hex mit kleinen Buchstaben
 f'{i:X}' - int als Hex mit großen Buchstaben
 f'{i:b}' - int als Binärzahl
 """
+
+from W1T4_while_Funktionen_Nataliya import umdrehung, leerzeichen_entfernen, ziffern_zahlen, trimmen, check_prim
+
+def menu_func(inp):
+    print(f' 1 ... umdrehen \n 2 ... leerzeichen_entfernen \n 3 ... ziffern_zahlen \n 4 ... trimmen \n 5 ... beenden ')
+    eingabe = input(inp)
+    print(eingabe)
+    while int(eingabe) != 0:
+        if int(eingabe) == 1:
+            print("check")
+            s = input("Welcher String soll umgedreht werden? ")
+            out = umdrehung(s)
+        elif int(eingabe) == 2:
+            s = input("Welcher String soll leerzeichen_entfernen werden? ")
+            out = leerzeichen_entfernen(s)
+        elif int(eingabe) == 3:
+            s = input("Welcher String soll ziffern_zahlen werden? ")
+            out = ziffern_zahlen(s)
+        elif int(eingabe) == 4:
+            s = input("Welcher String soll getrimmt werden? ")
+            out = trimmen(s)
+        print(out)
+        eingabe = input(inp)
+        return "End"
+
+x = menu_func("Auswahl: ")
+print("Ergebnisse:", x)
+
+def prim_bis_10000():
+    for i in range(0, 10001):
+        if check_prim(i):
+            print(f"{i:25,d}")
+
+
+prim_bis_10000()
