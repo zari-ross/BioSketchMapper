@@ -9,7 +9,8 @@
 # %%time
 def umdrehung(inp):
     pni = inp[::-1]
-    print(inp, "\n", pni, sep="")
+    # print(inp, "\n", pni, sep="")
+    return pni
 umdrehung("Josef")
 
 # %%time
@@ -73,44 +74,44 @@ class StopExecution(Exception):
     def _render_traceback_(self):
         pass
 
-def weirderst_trim(inp):
-    i = 0
-    out1 = ""
-    out2 = ""
-    if ((inp[0] != " ") and (inp[len(inp)-1] != " ")):
-        out2 = inp
-    elif inp[0] == " ":
-        while (i != len(inp)-1) and ((inp[i] == " ")):
-            i += 1
-        if i == len(inp)-1:
-            print("empty", sep="")
-            raise StopExecution
-        while i < len(inp):
-            out1 = out1 + inp[i]
-            i += 1        
-        if inp[-1] == " ":
-            j = len(out1)-1 
-            while out1[j] == " ":
-                j -= 1
-            while j >= 0:
-                out2 = out1[j] + out2
-                j -= 1       
-        else:
-            out2 = out1
-    elif inp[-1] == " ":   
-        j = len(inp)-1 
-        while inp[j] == " ":
-            j -= 1
-        while j >= 0:
-            out2 = inp[j] + out2
-            j -= 1     
-    print("check", out2, "check", sep="")
-    
-weirderst_trim("33333")
-weirderst_trim("   33333     ")
-weirderst_trim("   33333")
-weirderst_trim("33333   ")
-weirderst_trim("   ")
+# def weirderst_trim(inp):
+#     i = 0
+#     out1 = ""
+#     out2 = ""
+#     if ((inp[0] != " ") and (inp[len(inp)-1] != " ")):
+#         out2 = inp
+#     elif inp[0] == " ":
+#         while (i != len(inp)-1) and ((inp[i] == " ")):
+#             i += 1
+#         if i == len(inp)-1:
+#             print("empty", sep="")
+#             raise StopExecution
+#         while i < len(inp):
+#             out1 = out1 + inp[i]
+#             i += 1
+#         if inp[-1] == " ":
+#             j = len(out1)-1
+#             while out1[j] == " ":
+#                 j -= 1
+#             while j >= 0:
+#                 out2 = out1[j] + out2
+#                 j -= 1
+#         else:
+#             out2 = out1
+#     elif inp[-1] == " ":
+#         j = len(inp)-1
+#         while inp[j] == " ":
+#             j -= 1
+#         while j >= 0:
+#             out2 = inp[j] + out2
+#             j -= 1
+#     print("check", out2, "check", sep="")
+#
+# weirderst_trim("33333")
+# weirderst_trim("   33333     ")
+# weirderst_trim("   33333")
+# weirderst_trim("33333   ")
+# weirderst_trim("   ")
 
 # %%time
 def trimmen(inp):
