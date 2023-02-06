@@ -118,5 +118,4 @@ def prim_bis_10000():
         if check_prim(i):
             print(f"{i:25,d}")
 
-
 prim_bis_10000()
