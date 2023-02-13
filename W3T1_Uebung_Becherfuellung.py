@@ -7,6 +7,8 @@
 #     sondern es kann eine Plausibilitätsprüfung stattfinden. Bei Vornamen z.B.
 #     ein Zugriff auf ein Register gültiger Namen.
 
+# Die Becherklasse ist
+
 class Becher:
     __inhalt = None
     __fassungsvermoegen = None
@@ -20,7 +22,11 @@ class Becher:
         self.__fuellhoehe = height
 
     def __str__(self):
-        return f" Was ist drin: {self.__inhalt}, Fassungsvermoegen = {self.__fassungsvermoegen} ml" \
+        if self.__fuellhoehe == 0:
+            print("The cup is empty.")
+        if self.__fuellhoehe == 0.5:
+            print("The cup is either half empty or half full.")
+        return f"Was ist drin: {self.__inhalt}, Fassungsvermoegen = {self.__fassungsvermoegen} ml" \
                f", Fuellhoehe = {self.__fuellhoehe:.0%}"
 
     def auffuelen(self):
@@ -30,12 +36,15 @@ class Becher:
     #
     def leertrinken(self):
         self.__fuellhoehe = 0
+        print("The cup is empty.")
 
     def schluckNehmen(self):
-        self.__fuellhoehe = (self.__fassungsvermoegen * self.__fuellhoehe - 20) / self.__fassungsvermoegen
+        if (self.__fassungsvermoegen * self.__fuellhoehe - 20) / self.__fassungsvermoegen > 0:
+            self.__fuellhoehe = (self.__fassungsvermoegen * self.__fuellhoehe - 20) / self.__fassungsvermoegen
+        else:
+            print("The cup would be empty, are you sure you want to drink it? Press 4.")
 
-
-def objektorientierung_v1():
+def objektorientierung_becher_uebung():
     tasse_1 = Becher("Tee", 200, 0.2)
     tasse_2 = Becher("Kaffee", 300, 0.7)
 
@@ -62,6 +71,36 @@ def objektorientierung_v1():
     print(f"{tasse_2}, id in hex: 0x{id(tasse_2):016X}")
 
 
+from W1T5_Uebung_Schleifen_Dozent import input_int
+
+
+def main():
+    """
+    Liegt das Hauptprogramm in einer eigenen Funktion, besteht später die Möglichkeit,
+    es aus einer anderen Datei zu starten.
+    """
+    auswahl = -1
+    tasse_1 = Becher("Tee", 200, 0.2)
+
+    while (auswahl != 0):
+        print("1 ... output")
+        print("2 ... auffuelen")
+        print("3 ... schluckNehmen")
+        print("4 ... leertrinken")
+        print("0 ... Beenden")
+
+        auswahl = input_int("Bitte Auswahl treffen: ")
+        if (auswahl >= 1) and (auswahl <= 4):
+            if (auswahl == 1):
+                print(f"{tasse_1}")
+            elif (auswahl == 2):
+                tasse_1.auffuelen()
+            elif (auswahl == 3):
+                tasse_1.schluckNehmen()  # how to check that is not empty afterwards
+            elif (auswahl == 4):
+                tasse_1.leertrinken()
+
 
 if __name__ == "__main__":
-    objektorientierung_v1()
+    # objektorientierung_becher_uebung()
+    main()
