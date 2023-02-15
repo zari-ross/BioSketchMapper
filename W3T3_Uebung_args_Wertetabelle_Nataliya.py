@@ -22,6 +22,19 @@ def wertetabelle(fkt, von, bis):
         print(f"{i:{max_len_left}}|{fkt(i):{max_len_right}}")
 
 
+from tabulate import tabulate  # Ich habe es auch einfacher gemacht mit package "tabulate"
+
+
+def datatabelle(fkt, von, bis):
+    data = []
+    for i in range(von, bis + 1):
+        data.append([i, fkt(i)])
+    col_names = ["x", "y"]
+    print(tabulate(data, headers=col_names))
+
+
 if __name__ == "__main__":
-    wertetabelle(quadrat, 2, 20)
-    wertetabelle(mult, 1, 5)
+    # wertetabelle(quadrat, 2, 20)
+    # wertetabelle(mult, 1, 5)
+    datatabelle(quadrat, 90002, 90020)
+    datatabelle(mult, 1, 5)
