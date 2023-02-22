@@ -21,16 +21,14 @@ class value_on_figure():
     x = None
     y = None
     expression = None
-    exist = None
 
-    def __init__(self, name="Gene", aliases=[], x=0.0, y=0.0, expression=None,
-                 exist=0):  # better not to repeat the attribute names for parameters
+    def __init__(self, name="Gene", aliases=[], x=0.0, y=0.0, expression=None):
+        # better not to repeat the attribute names for parameters?
         self.name = name
         self.aliases = aliases
         self.x = x
         self.y = y
         self.expression = expression
-        self.exist = exist
 
     def __str__(self):  # A method to output object as a string.
         # print(nds) explicitly is working as print(nds.__str__()
@@ -69,10 +67,9 @@ def find_gene_IDs_in_instances(file, insts):
 
     for k, v in input_values.items():
         for instance in insts:
-            if k.upper() in instance.aliases:
+            if k in instance.aliases:
                 print(v)
                 instance.expression = v
-                instance.exist = 1
 
 
 def plot_coords(data_inp):
@@ -83,7 +80,7 @@ def plot_coords(data_inp):
     fig, ax = plt.subplots()
     ax.imshow(img)  # , extent=[0, 500, 0, 500]
     data.plot(kind='scatter', x='x', y='y', s=100,
-              c=data['Expression'], alpha=data['Exist'],
+              c=data['Expression'],
               edgecolors='black', linewidths=1,
               # colorbar=True,
               title='Genes', ax=ax)
@@ -97,15 +94,14 @@ def plot_coords(data_inp):
 
 if __name__ == "__main__":
     try:
-        df = pd.read_csv('data.csv')
+        # df = pd.read_csv('data.csv')
         plot_coords(df)
     except:
         instances = [
-            value_on_figure("GABAB3", ["GABAB3b", "GABAB3a", "GABAB3"]),
-            value_on_figure("RGS12", ["RGS12"]),
+            value_on_figure("GABAB-3", ["Gabrb3", "Gabrb3s", "GABAB3a"]),
+            value_on_figure("RGS12", ["Rgs12"]),
             value_on_figure("Fake", ["nope"]),
-            value_on_figure("GABAB1", ["GABAB1", "GABAB1a"]),
-            value_on_figure("GAD-67", ["GAD67"])
+            value_on_figure("GABAA-1", ["Gabra1", "Gabra1a"])
         ]
 
         for instance in instances:
@@ -134,17 +130,31 @@ if __name__ == "__main__":
             ys.append(instance.y)
             expressions.append(instance.expression)
 
-        # create a dictionary
-        dict_for_pd = {
-            'Genes': genes,
-            'Aliases': aliases,
-            'x': xs,
-            'y': ys,
-            'Expression': expressions,
-            'Exist': [1] * len(xs)
-        }
+        import pickle
 
-        df = pd.DataFrame(dict_for_pd)
-        print(df)
-        df.to_csv('data.csv')
-        plot_coords(df)
+        # Save the collection to a file using pickle
+        with open("my_collection.pkl", "wb") as f:
+            pickle.dump(instances, f)
+
+        # Load the collection from the file using pickle
+        with open("my_collection.pkl", "rb") as f:
+            loaded_collection = pickle.load(f)
+
+        # Use the loaded collection
+        print(loaded_collection)
+
+        for instance in loaded_collection:
+            print(instance.expression)
+        # create a dictionary
+        # dict_for_pd = {
+        #     'Genes': genes,
+        #     'Aliases': aliases,
+        #     'x': xs,
+        #     'y': ys,
+        #     'Expression': expressions
+        # }
+
+        # df = pd.DataFrame(dict_for_pd)
+        # print(df)
+        # df.to_csv('data.csv')
+        # plot_coords(df)
