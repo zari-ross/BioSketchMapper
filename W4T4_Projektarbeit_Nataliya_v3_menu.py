@@ -74,6 +74,7 @@ for i in list_of_input_files:
 """
 
 input_annotation_file = "input_annotation_file.txt"
+# "file_with_values.txt" or "2_file_with_values_FC_TauKO_m3.txt"
 file_with_values = "file_with_values.txt"
 map_sketch_file = "small_map_sketch_file_Picture1.png"
 sketch_file = "small_sketch_file_Picture1bw.png"
