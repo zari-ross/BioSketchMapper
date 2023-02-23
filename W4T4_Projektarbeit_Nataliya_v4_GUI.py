@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-# Second day version (22.02.2023):
+# Third day version (23.02.2023):
 # 1) Experiment that gives values for large number of entities that could be
 # represented with a color-code (proteomics or transcriptomics experiment)
 # 2) Idea of a pathway that needs to be
@@ -16,11 +16,10 @@
 # to some kind of grid of 10, for example?)
 # 8) Saving the coordinates and working with that file from there only
 # 9)Matching the entities with the value that needs to be color-coded
-# 10) Final plot - export in svg-format to be able
-# to work in vector graphics
-
+# 10) Final plot - export in svg-format to be able to work in vector graphics
 
 import subprocess
+
 try:
     import pandas as pd
 except ImportError:
@@ -49,36 +48,39 @@ import os
 import tkinter as tk
 
 
+import tkinter.simpledialog as sd
+from tkinter import filedialog, messagebox
+
+
+def get_input(prompt):
+    root = tk.Tk()
+    root.withdraw()
+    user_input = sd.askstring("Input", prompt)
+    return user_input
+
+
+def open_input_files():
+    # create a root window
+    root = tk.Tk()
+    root.withdraw()  # hide the root window
+
+    # Choose all the input files
+    list_of_input_files = ["input_annotation_file", "file_with_values", "map_sketch_file", "sketch_file"]
+    for i in list_of_input_files:
+        print("Please select:", i)
+        # open a file dialog box
+        file_path = filedialog.askopenfilename()
+
+        # check if the user selected a file
+        if file_path:
+            var_name = i
+            value = file_path
+            globals()[var_name] = value
+        else:
+            print('No file selected')
+
+
 """
-condition = input("Please give a name for your sketch/pathway/condition:")
-experiment_name = input("Please give a name for your sketch/pathway/condition:")
-
-from tkinter import filedialog
-
-# create a root window
-root = tk.Tk()
-root.withdraw()  # hide the root window
-
-# Choose all the input files
-list_of_input_files = ["input_annotation_file", "file_with_values", "map_sketch_file", "sketch_file"]
-for i in list_of_input_files:
-    print("Please select:", i)
-    # open a file dialog box
-    file_path = filedialog.askopenfilename()
-
-    # check if the user selected a file
-    if file_path:
-        var_name = i
-        value = file_path
-        globals()[var_name] = value
-    else:
-        print('No file selected')
-
-final_figure_output_file = condition + "_" + experiment_name + ".svg"
-final_df_output_file = condition + "_" + experiment_name + ".csv"
-collection_output_file = condition + ".pkl"
-"""
-
 # Define the folder path and file name variables
 folder_path = "C:/Users/NITru/OneDrive/Documents/PhD_work/GitHub/Various_scripts/Untitled Folder"
 # Create file paths
@@ -91,8 +93,7 @@ sketch_file = os.path.join(folder_path, condition + "_bw.png")
 final_figure_output_file = os.path.join(folder_path, condition + "_" + experiment_name + ".svg")
 final_df_output_file = os.path.join(folder_path, condition + "_" + experiment_name + ".csv")
 collection_output_file = os.path.join(folder_path, condition + ".pkl")
-
-from tkinter import filedialog, messagebox
+"""
 
 
 class AnalysisGUI:
@@ -110,11 +111,19 @@ class AnalysisGUI:
         self.map_values_button = tk.Button(master, text="Map values", command=self.map_values)
         self.map_values_button.pack()
 
-        self.modify_coords_button = tk.Button(master, text="Modify coordinates", command=self.modify_coordinates)
+        self.modify_coords_button = tk.Button(master, text="Modify coordinates", command=self.select_object_window)
         self.modify_coords_button.pack()
 
-        self.quit_button = tk.Button(master, text="Quit", command=master.quit)
+        #self.quit_button = tk.Button(master, text="Quit", command=master.quit)
+        self.quit_button = tk.Button(master, text="Quit", command=self.master.destroy)
         self.quit_button.pack()
+
+    def select_object_window(self):
+        window = SelectObjectWindow(self.master)
+        self.master.wait_window(window.top)
+        selected_object = window.selected_object
+        if selected_object is not None:
+            self.modify_coordinates(selected_object)
 
     def find_coordinates(self):
         # messagebox.showinfo("Analysis GUI", "Finding the coordinates...")
@@ -124,6 +133,7 @@ class AnalysisGUI:
 
         # Set the coordinates by clicking on the sketch
         for instance in instances:
+            print(instance.name)
             gene_coord = find_coords(map_sketch_file)
             instance.x = gene_coord[0]
             instance.y = gene_coord[1]
@@ -132,51 +142,113 @@ class AnalysisGUI:
         plot_coords(df)
 
         # Save the collection to a file using pickle
-        with open(collection_output_file, "wb") as f:
+        with open(empty_coords_collection_output_file, "wb") as f:
             pickle.dump(instances, f)
 
         # messagebox.showinfo("Analysis GUI", "Finding the coordinates is finished.")
 
     def map_values(self):
-        # messagebox.showinfo("Analysis GUI", "Mapping the values...")
-
-        with open(collection_output_file, "rb") as f:
-            loaded_collection = pickle.load(f)
+        try:
+            loaded_collection = load_obj_collection(collection_output_file)
+        except:
+            loaded_collection = load_obj_collection(empty_coords_collection_output_file)
 
         find_gene_IDs_in_instances(file_with_values, loaded_collection)
+
+        with open(collection_output_file, "wb") as f:
+            pickle.dump(loaded_collection, f)
+
         df = create_dataframe_from_collection(loaded_collection)
         df.to_csv(final_df_output_file)
         plot_coords(df)
 
-        # messagebox.showinfo("Analysis GUI", "Mapping the values is finished.")
-
-    def modify_coordinates(self):
-        # messagebox.showinfo("Analysis GUI", "Modifying the coordinates...")
-
-        with open(collection_output_file, "rb") as f:
-            loaded_collection = pickle.load(f)
-            selected_object = select_object(loaded_collection)
+    def modify_coordinates(self, selected_object):
+        loaded_collection = load_obj_collection(collection_output_file)
 
         find_gene_IDs_in_instances(file_with_values, loaded_collection)
         df = create_dataframe_from_collection(loaded_collection)
         df.to_csv(final_df_output_file)
         plot_coords(df, selected_object.name)
 
-        x_move = input_int("Choose how far the point should be moved in x:")
-        y_move = input_int("Choose how far the point should be moved in y:")
-        for obj in loaded_collection:
-            if obj.name == selected_object.name:
-                obj.modify_coords(x_move, y_move)
+        root = tk.Tk()
+        root.title("Modify Coordinates")
 
-        with open(collection_output_file, "wb") as f:
-            pickle.dump(loaded_collection, f)
+        x_move_label = tk.Label(root, text="Choose how far the point should be moved in x:")
+        x_move_entry = tk.Entry(root)
+        x_move_label.pack(side=tk.TOP)
+        x_move_entry.pack()
+        x_move_entry.focus_set()
 
-        find_gene_IDs_in_instances(file_with_values, loaded_collection)
-        df = create_dataframe_from_collection(loaded_collection)
-        df.to_csv(final_df_output_file)
-        plot_coords(df)
+        y_move_label = tk.Label(root, text="Choose how far the point should be moved in y:")
+        y_move_label.pack(side=tk.TOP)
+        y_move_entry = tk.Entry(root)
+        y_move_entry.pack()
+
+        def get_input():
+            x_move = int(x_move_entry.get())
+            y_move = int(y_move_entry.get())
+
+            for obj in loaded_collection:
+                if obj.name == selected_object.name:
+                    obj.modify_coords(x_move, y_move)
+
+            with open(collection_output_file, "wb") as f:
+                pickle.dump(loaded_collection, f)
+
+            find_gene_IDs_in_instances(file_with_values, loaded_collection)
+            df = create_dataframe_from_collection(loaded_collection)
+            df.to_csv(final_df_output_file)
+            plot_coords(df)
+
+            root.destroy()
+
+        submit_button = tk.Button(root, text="Submit", command=get_input)
+        submit_button.pack()
+
+        root.mainloop()
 
         # messagebox.showinfo("Analysis GUI", "Modifying the coordinates is finished.")
+
+
+def load_obj_collection(file_path):
+    with open(file_path, "rb") as f:
+        return pickle.load(f)
+
+
+class SelectObjectWindow:
+    def __init__(self, master):
+        self.top = tk.Toplevel(master)
+        self.top.title("Select Object")
+
+        # self.label = tk.Label(self.top, text="Enter object name:")
+        # self.label.pack()
+        #
+        self.entry = tk.Entry(self.top)
+        # self.entry.pack()
+        self.entry.focus_set()
+
+        self.listbox = tk.Listbox(self.top)
+        self.listbox.pack()
+
+        self.button = tk.Button(self.top, text="OK", command=self.select_object)
+        self.button.pack()
+
+        self.selected_object = None
+
+        self.listbox_update()
+
+    def listbox_update(self):
+        self.listbox.delete(0, tk.END)
+        user_input = self.entry.get().lower()
+        matching_objs = [obj for obj in load_obj_collection(collection_output_file) if user_input in obj.name.lower()]
+        for obj in matching_objs:
+            self.listbox.insert(tk.END, obj.name)
+
+    def select_object(self):
+        selection = self.listbox.curselection()
+        if len(selection) == 1:
+            self.selected_object = load_obj_collection(collection_output_file)[selection[0]]
+            self.top.destroy()
 
 
 def input_menu_number(s):
@@ -220,7 +292,7 @@ def select_object(obj_collection):
         else:
             print("Multiple matching objects found:")
             for idx, obj in enumerate(matching_objs):
-                print(f"{idx+1}: {obj.name}")
+                print(f"{idx + 1}: {obj.name}")
             print("Enter the number of the object you want to select (or 0 to try again): ")
             selection = None
             while selection is None:
@@ -311,7 +383,7 @@ def find_gene_IDs_in_instances(file, insts):
                 instance.expression = v
 
 
-def plot_coords(data_inp, highlight_gene = None):
+def plot_coords(data_inp, highlight_gene=None):
     nan_data = data_inp[data_inp['Expression'].isnull()]
     data = data_inp[data_inp['Expression'].notnull()]
 
@@ -374,72 +446,16 @@ def create_dataframe_from_collection(collection):
 
 
 if __name__ == "__main__":
+    condition = get_input("Please give a name for your sketch/pathway/condition:")
+    experiment_name = get_input("Please give a name for your experiment:")
+
+    final_figure_output_file = condition + "_" + experiment_name + ".svg"
+    final_df_output_file = condition + "_" + experiment_name + ".csv"
+    empty_coords_collection_output_file = condition + ".pkl"
+    collection_output_file = condition + "_" + experiment_name + ".pkl"
+
+    open_input_files()
+
     root = tk.Tk()
     analysis_gui = AnalysisGUI(root)
     root.mainloop()
-
-    # task = -1  # "Find_coordinates" or "Map_values" or "Modify_coordinates"
-    #
-    # while task != 0:
-    #     print("1 ... Find_coordinates")
-    #     print("2 ... Map_values")
-    #     print("3 ... Modify_coordinates")
-    #     print("0 ... Finish analysis")
-    #
-    #     task = input_menu_number("Please choose a menu point: ")
-    #     if (task >= 1) and (task <= 4):
-    #         if task == 1:
-    #             # Create instances from file
-    #             instances = create_instances()
-    #             # Set the coordinates by clicking on the sketch
-    #             for instance in instances:
-    #                 print(instance.name)
-    #                 gene_coord = find_coords(map_sketch_file)
-    #                 print(gene_coord[0], gene_coord[1])
-    #                 instance.x = gene_coord[0]
-    #                 instance.y = gene_coord[1]
-    #
-    #             df = create_dataframe_from_collection(instances)
-    #             plot_coords(df)
-    #
-    #             # Save the collection to a file using pickle
-    #             with open(collection_output_file, "wb") as f:
-    #                 pickle.dump(instances, f)
-    #
-    #             print("Finding the coordinates is finished.")
-    #
-    #         elif task == 2:
-    #             with open(collection_output_file, "rb") as f:
-    #                 loaded_collection = pickle.load(f)
-    #
-    #             find_gene_IDs_in_instances(file_with_values, loaded_collection)
-    #             df = create_dataframe_from_collection(loaded_collection)
-    #             print(df)
-    #             df.to_csv(final_df_output_file)
-    #             plot_coords(df)
-    #
-    #         elif task == 3:
-    #             with open(collection_output_file, "rb") as f:
-    #                 loaded_collection = pickle.load(f)
-    #                 selected_object = select_object(loaded_collection)
-    #                 print(selected_object)
-    #
-    #                 find_gene_IDs_in_instances(file_with_values, loaded_collection)
-    #                 df = create_dataframe_from_collection(loaded_collection)
-    #                 df.to_csv(final_df_output_file)
-    #                 plot_coords(df, selected_object.name)
-    #
-    #                 x_move = input_int("Choose how far the point should be moved in x:")
-    #                 y_move = input_int("Choose how far the point should be moved in y:")
-    #                 for obj in loaded_collection:
-    #                     if obj.name == selected_object.name:
-    #                         obj.modify_coords(x_move, y_move)
-    #
-    #             with open(collection_output_file, "wb") as f:
-    #                 pickle.dump(loaded_collection, f)
-    #
-    #             find_gene_IDs_in_instances(file_with_values, loaded_collection)
-    #             df = create_dataframe_from_collection(loaded_collection)
-    #             print(df)
-    #             df.to_csv(final_df_output_file)
-    #             plot_coords(df)
