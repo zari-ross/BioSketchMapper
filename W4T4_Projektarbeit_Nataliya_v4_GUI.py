@@ -117,7 +117,7 @@ class AnalysisGUI:
         self.quit_button.pack()
 
     def find_coordinates(self):
-        messagebox.showinfo("Analysis GUI", "Finding the coordinates...")
+        # messagebox.showinfo("Analysis GUI", "Finding the coordinates...")
 
         # Create instances from file
         instances = create_instances()
@@ -135,10 +135,10 @@ class AnalysisGUI:
         with open(collection_output_file, "wb") as f:
             pickle.dump(instances, f)
 
-        messagebox.showinfo("Analysis GUI", "Finding the coordinates is finished.")
+        # messagebox.showinfo("Analysis GUI", "Finding the coordinates is finished.")
 
     def map_values(self):
-        messagebox.showinfo("Analysis GUI", "Mapping the values...")
+        # messagebox.showinfo("Analysis GUI", "Mapping the values...")
 
         with open(collection_output_file, "rb") as f:
             loaded_collection = pickle.load(f)
@@ -148,25 +148,25 @@ class AnalysisGUI:
         df.to_csv(final_df_output_file)
         plot_coords(df)
 
-        messagebox.showinfo("Analysis GUI", "Mapping the values is finished.")
+        # messagebox.showinfo("Analysis GUI", "Mapping the values is finished.")
 
     def modify_coordinates(self):
-        messagebox.showinfo("Analysis GUI", "Modifying the coordinates...")
+        # messagebox.showinfo("Analysis GUI", "Modifying the coordinates...")
 
         with open(collection_output_file, "rb") as f:
             loaded_collection = pickle.load(f)
             selected_object = select_object(loaded_collection)
 
-            find_gene_IDs_in_instances(file_with_values, loaded_collection)
-            df = create_dataframe_from_collection(loaded_collection)
-            df.to_csv(final_df_output_file)
-            plot_coords(df, selected_object.name)
+        find_gene_IDs_in_instances(file_with_values, loaded_collection)
+        df = create_dataframe_from_collection(loaded_collection)
+        df.to_csv(final_df_output_file)
+        plot_coords(df, selected_object.name)
 
-            x_move = input_int("Choose how far the point should be moved in x:")
-            y_move = input_int("Choose how far the point should be moved in y:")
-            for obj in loaded_collection:
-                if obj.name == selected_object.name:
-                    obj.modify_coords(x_move, y_move)
+        x_move = input_int("Choose how far the point should be moved in x:")
+        y_move = input_int("Choose how far the point should be moved in y:")
+        for obj in loaded_collection:
+            if obj.name == selected_object.name:
+                obj.modify_coords(x_move, y_move)
 
         with open(collection_output_file, "wb") as f:
             pickle.dump(loaded_collection, f)
@@ -176,7 +176,7 @@ class AnalysisGUI:
         df.to_csv(final_df_output_file)
         plot_coords(df)
 
-        messagebox.showinfo("Analysis GUI", "Modifying the coordinates is finished.")
+        # messagebox.showinfo("Analysis GUI", "Modifying the coordinates is finished.")
 
 
 def input_menu_number(s):
