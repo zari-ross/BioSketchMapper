@@ -19,15 +19,66 @@
 # 10) Final plot - export in svg-format to be able
 # to work in vector graphics
 
-import pandas as pd
-import matplotlib.pyplot as plt
-from mpl_point_clicker import clicker
-import pickle
+
+import subprocess
+try:
+    import pandas as pd
+except ImportError:
+    subprocess.check_call(['pip', 'install', 'pandas'])
+    import pandas as pd
+
+try:
+    import matplotlib.pyplot as plt
+except ImportError:
+    subprocess.check_call(['pip', 'install', 'matplotlib'])
+    import matplotlib.pyplot as plt
+
+try:
+    from mpl_point_clicker import clicker
+except ImportError:
+    subprocess.check_call(['pip', 'install', 'mpl_point_clicker'])
+    from mpl_point_clicker import clicker
+
+try:
+    import pickle
+except ImportError:
+    subprocess.check_call(['pip', 'install', 'pickle'])
+    import pickle
+
 import os
+import tkinter as tk
+from tkinter import filedialog
+
+# create a root window
+root = tk.Tk()
+root.withdraw()  # hide the root window
+
+"""
+condition = input("Please give a name for your sketch/pathway/condition:")
+experiment_name = input("Please give a name for your sketch/pathway/condition:")
+
+# Choose all the input files
+list_of_input_files = ["input_annotation_file", "file_with_values", "map_sketch_file", "sketch_file"]
+for i in list_of_input_files:
+    print("Please select:", i)
+    # open a file dialog box
+    file_path = filedialog.askopenfilename()
+
+    # check if the user selected a file
+    if file_path:
+        var_name = i
+        value = file_path
+        globals()[var_name] = value
+    else:
+        print('No file selected')
+
+final_figure_output_file = condition + "_" + experiment_name + ".svg"
+final_df_output_file = condition + "_" + experiment_name + ".csv"
+collection_output_file = condition + ".pkl"
+"""
 
 # Define the folder path and file name variables
 folder_path = "C:/Users/NITru/OneDrive/Documents/PhD_work/GitHub/Various_scripts/Untitled Folder"
-
 # Create file paths
 condition = "synapse"
 experiment_name = "values_to_plot"
@@ -40,19 +91,63 @@ final_df_output_file = os.path.join(folder_path, condition + "_" + experiment_na
 collection_output_file = os.path.join(folder_path, condition + ".pkl")
 
 
-def input_int(s: str) -> int:
+def input_menu_number(s):
     num = 0
     inp_ok = False
     while not inp_ok:
         inp = input(s)
         # if (inp.isnumeric()) or ((inp[0] == "-") and inp[1:].isnumeric()):
-        if 0 <= int(inp <= 3:
+        if 0 <= int(inp) <= 3:
             num = int(inp)
             inp_ok = True
         else:
             print("Please input a number from 0 to 3.")
             inp_ok = False
     return num
+
+
+def input_int(s: str) -> int:
+    num = 0
+    inp_ok = False
+    while not inp_ok:
+        inp = input(s)
+        if (inp.isnumeric()) or ((inp[0] == "-") and inp[1:].isnumeric()):
+            num = int(inp)
+            inp_ok = True
+        else:
+            print("Please input a number.")
+            inp_ok = False
+    return num
+
+
+def select_object(obj_collection):
+    print("Enter object name (or a few characters):")
+    while True:
+        user_input = input("> ")
+        matching_objs = [obj for obj in obj_collection if user_input.lower() in obj.name.lower()]
+        if len(matching_objs) == 0:
+            print("No objects found. Please try again.")
+        elif len(matching_objs) == 1:
+            return matching_objs[0]
+        else:
+            print("Multiple matching objects found:")
+            for idx, obj in enumerate(matching_objs):
+                print(f"{idx+1}: {obj.name}")
+            print("Enter the number of the object you want to select (or 0 to try again): ")
+            selection = None
+            while selection is None:
+                try:
+                    selection_idx = int(input("> "))
+                    if selection_idx == 0:
+                        break
+                    elif 1 <= selection_idx <= len(matching_objs):
+                        selection = matching_objs[selection_idx - 1]
+                    else:
+                        print("Invalid selection. Please enter a number between 1 and", len(matching_objs))
+                except ValueError:
+                    print("Invalid input. Please enter a number.")
+            if selection is not None:
+                return selection
 
 
 def create_instances():
@@ -64,10 +159,10 @@ def create_instances():
     return instances
 
 
-def label_point(x, y, val, ax):
+def label_point(x, y, val, color, ax):
     a = pd.concat({'x': x + 10, 'y': y + 10, 'val': val}, axis=1)
     for i, point in a.iterrows():
-        ax.text(point['x'], point['y'], str(point['val']))
+        ax.text(point['x'], point['y'], str(point['val']), color=color)
 
 
 class value_on_figure():
@@ -128,23 +223,37 @@ def find_gene_IDs_in_instances(file, insts):
                 instance.expression = v
 
 
-def plot_coords(data_inp):
+def plot_coords(data_inp, highlight_gene = None):
     nan_data = data_inp[data_inp['Expression'].isnull()]
     data = data_inp[data_inp['Expression'].notnull()]
 
     img = plt.imread(sketch_file)
     fig, ax = plt.subplots()
     ax.imshow(img)  # , extent=[0, 500, 0, 500]
+
+    # Plot data points
     data.plot(kind='scatter', x='x', y='y', s=100,
               c=data['Expression'],
               edgecolors='black', linewidths=1,
               colormap="RdYlGn", colorbar=True,
               title='Genes', ax=ax)
+
+    # Plot NaN data points
     nan_data.plot(kind='scatter', x='x', y='y', s=100,
                   fc=(0.3, 0.3, 0.3, 0.7),
                   edgecolors='black', linewidths=1, ax=ax)
-    label_point(data.x, data.y, data.Genes, ax)
-    label_point(nan_data.x, nan_data.y, nan_data.Genes, ax)
+
+    # Add labels to data points
+    label_point(data.x, data.y, data.Genes, color="black", ax=ax)
+    label_point(nan_data.x, nan_data.y, nan_data.Genes, color="black", ax=ax)
+
+    # Highlight the specified gene in red
+    if highlight_gene:
+        gene_data = data_inp[data_inp['Genes'] == highlight_gene]
+        gene_data.plot(kind='scatter', x='x', y='y', s=100,
+                       fc='red', ec='black', linewidths=1, ax=ax)
+        label_point(gene_data.x, gene_data.y, gene_data.Genes, color='red', ax=ax)
+
     plt.savefig(final_figure_output_file)
     plt.show()
 
@@ -180,13 +289,13 @@ if __name__ == "__main__":
 
     task = -1  # "Find_coordinates" or "Map_values" or "Modify_coordinates"
 
-    while (task != 0):
+    while task != 0:
         print("1 ... Find_coordinates")
         print("2 ... Map_values")
         print("3 ... Modify_coordinates")
         print("0 ... Finish analysis")
 
-        task = input_int("Bitte Auswahl treffen: ")
+        task = input_menu_number("Please choose a menu point: ")
         if (task >= 1) and (task <= 4):
             if task == 1:
                 # Create instances from file
@@ -221,9 +330,19 @@ if __name__ == "__main__":
             elif task == 3:
                 with open(collection_output_file, "rb") as f:
                     loaded_collection = pickle.load(f)
+                    selected_object = select_object(loaded_collection)
+                    print(selected_object)
+
+                    find_gene_IDs_in_instances(file_with_values, loaded_collection)
+                    df = create_dataframe_from_collection(loaded_collection)
+                    df.to_csv(final_df_output_file)
+                    plot_coords(df, selected_object.name)
+
+                    x_move = input_int("Choose how far the point should be moved in x:")
+                    y_move = input_int("Choose how far the point should be moved in y:")
                     for obj in loaded_collection:
-                        if obj.name == "GABAA-1":
-                            obj.modify_coords(-500)
+                        if obj.name == selected_object.name:
+                            obj.modify_coords(x_move, y_move)
 
                 with open(collection_output_file, "wb") as f:
                     pickle.dump(loaded_collection, f)
