@@ -71,24 +71,32 @@ for i in list_of_input_files:
         globals()[var_name] = value
     else:
         print('No file selected')
-
-final_figure_output_file = condition + "_" + experiment_name + ".svg"
-final_df_output_file = condition + "_" + experiment_name + ".csv"
-collection_output_file = condition + ".pkl"
 """
 
-# Define the folder path and file name variables
-folder_path = "C:/Users/NITru/OneDrive/Documents/PhD_work/GitHub/Various_scripts/Untitled Folder"
-# Create file paths
+input_annotation_file = "input_annotation_file.txt"
+file_with_values = "file_with_values.txt"
+map_sketch_file = "small_map_sketch_file_Picture1.png"
+sketch_file = "small_sketch_file_Picture1bw.png"
+
 condition = "synapse"
-experiment_name = "values_to_plot"
-input_annotation_file = os.path.join(folder_path, condition + ".txt")
-file_with_values = os.path.join(folder_path, experiment_name + ".txt")
-map_sketch_file = os.path.join(folder_path, condition + ".png")
-sketch_file = os.path.join(folder_path, condition + "_bw.png")
-final_figure_output_file = os.path.join(folder_path, condition + "_" + experiment_name + ".svg")
-final_df_output_file = os.path.join(folder_path, condition + "_" + experiment_name + ".csv")
-collection_output_file = os.path.join(folder_path, condition + ".pkl")
+experiment_name = "half_life"
+final_figure_output_file = condition + "_" + experiment_name + ".svg"
+final_df_output_file = condition + "_" + experiment_name + ".csv"
+empty_coords_collection_output_file = condition + ".pkl"
+collection_output_file = condition + "_" + experiment_name + ".pkl"
+
+# # Define the folder path and file name variables
+# folder_path = "C:/Users/NITru/OneDrive/Documents/PhD_work/GitHub/Various_scripts/Untitled Folder"
+# # Create file paths
+# condition = "synapse"
+# experiment_name = "values_to_plot"
+# input_annotation_file = os.path.join(folder_path, condition + ".txt")
+# file_with_values = os.path.join(folder_path, experiment_name + ".txt")
+# map_sketch_file = os.path.join(folder_path, condition + ".png")
+# sketch_file = os.path.join(folder_path, condition + "_bw.png")
+# final_figure_output_file = os.path.join(folder_path, condition + "_" + experiment_name + ".svg")
+# final_df_output_file = os.path.join(folder_path, condition + "_" + experiment_name + ".csv")
+# collection_output_file = os.path.join(folder_path, condition + ".pkl")
 
 
 def input_menu_number(s):
@@ -312,39 +320,43 @@ if __name__ == "__main__":
                 plot_coords(df)
 
                 # Save the collection to a file using pickle
-                with open(collection_output_file, "wb") as f:
+                with open(empty_coords_collection_output_file, "wb") as f:
                     pickle.dump(instances, f)
 
                 print("Finding the coordinates is finished.")
 
             elif task == 2:
-                with open(collection_output_file, "rb") as f:
+                with open(empty_coords_collection_output_file, "rb") as f:
                     loaded_collection = pickle.load(f)
 
                 find_gene_IDs_in_instances(file_with_values, loaded_collection)
+
+                # Save the collection to a file using pickle
+                with open(collection_output_file, "wb") as f:
+                    pickle.dump(loaded_collection, f)
+
                 df = create_dataframe_from_collection(loaded_collection)
                 print(df)
                 df.to_csv(final_df_output_file)
                 plot_coords(df)
 
             elif task == 3:
-                with open(collection_output_file, "rb") as f:
+                with open(empty_coords_collection_output_file, "rb") as f:
                     loaded_collection = pickle.load(f)
-                    selected_object = select_object(loaded_collection)
-                    print(selected_object)
+                selected_object = select_object(loaded_collection)
+                print(selected_object)
 
-                    find_gene_IDs_in_instances(file_with_values, loaded_collection)
-                    df = create_dataframe_from_collection(loaded_collection)
-                    df.to_csv(final_df_output_file)
-                    plot_coords(df, selected_object.name)
+                df = create_dataframe_from_collection(loaded_collection)
+                df.to_csv(final_df_output_file)
+                plot_coords(df, selected_object.name)
 
-                    x_move = input_int("Choose how far the point should be moved in x:")
-                    y_move = input_int("Choose how far the point should be moved in y:")
-                    for obj in loaded_collection:
-                        if obj.name == selected_object.name:
-                            obj.modify_coords(x_move, y_move)
+                x_move = input_int("Choose how far the point should be moved in x:")
+                y_move = input_int("Choose how far the point should be moved in y:")
+                for obj in loaded_collection:
+                    if obj.name == selected_object.name:
+                        obj.modify_coords(x_move, y_move)
 
-                with open(collection_output_file, "wb") as f:
+                with open(empty_coords_collection_output_file, "wb") as f:
                     pickle.dump(loaded_collection, f)
 
                 find_gene_IDs_in_instances(file_with_values, loaded_collection)
