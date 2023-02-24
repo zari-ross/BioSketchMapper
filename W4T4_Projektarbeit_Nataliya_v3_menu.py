@@ -300,10 +300,10 @@ if __name__ == "__main__":
     task = -1  # "Find_coordinates" or "Map_values" or "Modify_coordinates"
 
     while task != 0:
-        print("1 ... Find_coordinates")
-        print("2 ... Map_values")
-        print("3 ... Modify_coordinates")
-        print("4 ... Add_coordinates")
+        print("1 ... Find coordinates")
+        print("2 ... Map values")
+        print("3 ... Modify coordinates")
+        print("4 ... Add coordinates")
         print("0 ... Finish analysis")
 
         task = input_menu_number("Please choose a menu point: ")
