@@ -74,6 +74,7 @@ for i in list_of_input_files:
 """
 
 input_annotation_file = "input_annotation_file.txt"
+input_additional_annotation_file = "input_annotation_file_2.txt"
 # "file_with_values.txt" or "2_file_with_values_FC_TauKO_m3.txt"
 file_with_values = "file_with_values.txt"
 map_sketch_file = "small_map_sketch_file_Picture1.png"
@@ -106,7 +107,7 @@ def input_menu_number(s):
     while not inp_ok:
         inp = input(s)
         # if (inp.isnumeric()) or ((inp[0] == "-") and inp[1:].isnumeric()):
-        if 0 <= int(inp) <= 3:
+        if 0 <= int(inp) <= 4:
             num = int(inp)
             inp_ok = True
         else:
@@ -159,9 +160,9 @@ def select_object(obj_collection):
                 return selection
 
 
-def create_instances():
+def create_instances(file_path):
     instances = []
-    with open(input_annotation_file, "r") as f:
+    with open(file_path, "r") as f:
         for line in f:
             row = line.strip('\n').split('\t')
             instances.append(value_on_figure(row[0], row[1].split(';')))
@@ -302,13 +303,14 @@ if __name__ == "__main__":
         print("1 ... Find_coordinates")
         print("2 ... Map_values")
         print("3 ... Modify_coordinates")
+        print("4 ... Add_coordinates")
         print("0 ... Finish analysis")
 
         task = input_menu_number("Please choose a menu point: ")
         if (task >= 1) and (task <= 4):
             if task == 1:
                 # Create instances from file
-                instances = create_instances()
+                instances = create_instances(input_annotation_file)
                 # Set the coordinates by clicking on the sketch
                 for instance in instances:
                     print(instance.name)
@@ -365,3 +367,28 @@ if __name__ == "__main__":
                 print(df)
                 df.to_csv(final_df_output_file)
                 plot_coords(df)
+
+            elif task == 4:
+                # Create instances from an extra file
+                instances = create_instances(input_additional_annotation_file)
+
+                # Set the coordinates by clicking on the sketch
+                for instance in instances:
+                    print(instance.name)
+                    gene_coord = find_coords(map_sketch_file)
+                    print(gene_coord[0], gene_coord[1])
+                    instance.x = gene_coord[0]
+                    instance.y = gene_coord[1]
+
+                with open(empty_coords_collection_output_file, "rb") as f:
+                    loaded_collection = pickle.load(f)
+
+                fused_obj_collection = loaded_collection + instances
+
+                df = create_dataframe_from_collection(fused_obj_collection)
+                plot_coords(df)
+
+                # Save the collection to a file using pickle
+                with open(empty_coords_collection_output_file, "wb") as f:
+                    pickle.dump(fused_obj_collection, f)
+
