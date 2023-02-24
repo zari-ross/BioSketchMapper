@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-# Second day version (22.02.2023):
+# Version 24.02.2023:
 # 1) Experiment that gives values for large number of entities that could be
 # represented with a color-code (proteomics or transcriptomics experiment)
 # 2) Idea of a pathway that needs to be
@@ -73,6 +73,13 @@ for i in list_of_input_files:
         print('No file selected')
 """
 
+# input_annotation_file = "input_annotation_file_full_1.txt"
+# input_additional_annotation_file = "input_annotation_file_full_2.txt" # _2 to _7
+# # "file_with_values.txt" or "2_file_with_values_FC_TauKO_m3.txt"
+# file_with_values = "file_with_values.txt"
+# map_sketch_file = "map_sketch_file_synapse.png"
+# sketch_file = "sketch_file_synapse_bw.png"
+
 input_annotation_file = "input_annotation_file.txt"
 input_additional_annotation_file = "input_annotation_file_2.txt"
 # "file_with_values.txt" or "2_file_with_values_FC_TauKO_m3.txt"
@@ -80,7 +87,7 @@ file_with_values = "file_with_values.txt"
 map_sketch_file = "small_map_sketch_file_Picture1.png"
 sketch_file = "small_sketch_file_Picture1bw.png"
 
-condition = "synapse"
+condition = "small_synapse"  # "synapse"
 experiment_name = "half_life"
 final_figure_output_file = condition + "_" + experiment_name + ".svg"
 final_df_output_file = condition + "_" + experiment_name + ".csv"
@@ -190,14 +197,12 @@ class value_on_figure():
         self.y = y
         self.expression = expression
 
-    def __str__(self):  # A method to output object as a string.
-        # print(nds) explicitly is working as print(nds.__str__()
-        # it is better to always write it ourselves, otherwise the output would be standard for al objects.
+    def __str__(self):
         return f" {self.name}: Aliases = {self.aliases}, coordinates = {self.x}, {self.y}"
 
     def modify_coords(self, x_move=0, y_move=0):
-        self.x = self.x + x_move
-        self.y = self.y + y_move
+        self.x = x_move
+        self.y = y_move
 
 
 def close_on_click(event):
@@ -233,7 +238,7 @@ def find_gene_IDs_in_instances(file, insts):
                 instance.expression = v
 
 
-def plot_coords(data_inp, highlight_gene = None):
+def plot_coords(data_inp, highlight_gene=None):
     nan_data = data_inp[data_inp['Expression'].isnull()]
     data = data_inp[data_inp['Expression'].notnull()]
 
@@ -353,8 +358,8 @@ if __name__ == "__main__":
                 df.to_csv(final_df_output_file)
                 plot_coords(df, selected_object.name)
 
-                x_move = input_int("Choose how far the point should be moved in x:")
-                y_move = input_int("Choose how far the point should be moved in y:")
+                x_move = input_int("Where should the point be moved in x:")
+                y_move = input_int("Where should the point be moved in y:")
                 for obj in loaded_collection:
                     if obj.name == selected_object.name:
                         obj.modify_coords(x_move, y_move)
