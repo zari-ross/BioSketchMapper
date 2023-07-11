@@ -1,0 +1,13 @@
+GABAA-1	Gabra1;Gabra1a
+GABAA-2	Gabra2
+GABAA-5	Gabra5
+GABAB-3	Gabrb3
+GABAB-1	Gabrb1
+GAD-67	Gad1
+GAD-65	Gad2
+Gephyrin	Gphn
+GlyT-1	Slc6a9
+rGVAT	Slc32a1
+Igsf9b	Igsf9b
+SynArfGEF-Po	Iqsec3
+Fake	Fake
