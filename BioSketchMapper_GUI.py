@@ -446,16 +446,17 @@ def create_dataframe_from_collection(collection):
 
 
 if __name__ == "__main__":
-    condition = get_input("Please give a name for your sketch/pathway/condition:")
-    experiment_name = get_input("Please give a name for your experiment:")
+    # condition = get_input("Please give a name for your sketch/pathway/condition:")
+    # experiment_name = get_input("Please give a name for your experiment:")
 
-    final_figure_output_file = condition + "_" + experiment_name + ".svg"
-    final_df_output_file = condition + "_" + experiment_name + ".csv"
-    empty_coords_collection_output_file = condition + ".pkl"
-    collection_output_file = condition + "_" + experiment_name + ".pkl"
+    # final_figure_output_file = condition + "_" + experiment_name + ".svg"
+    # final_df_output_file = condition + "_" + experiment_name + ".csv"
+    # empty_coords_collection_output_file = condition + ".pkl"
+    # collection_output_file = condition + "_" + experiment_name + ".pkl"
 
-    open_input_files()
+    # open_input_files()
 
-    root = tk.Tk()
-    analysis_gui = AnalysisGUI(root)
-    root.mainloop()
+    # root = tk.Tk()
+    # analysis_gui = AnalysisGUI(root)
+    # root.mainloop()
+    pass
