@@ -13,6 +13,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolb
 import matplotlib.image as mpimg
 from matplotlib.backend_bases import MouseButton
 
+script_dir = os.path.dirname(os.path.realpath(__file__))  # Get the directory of the current script
 
 class MainApplication(tk.Tk):
 
@@ -63,8 +64,8 @@ class StartPage(tk.Frame):
         self.frames = {}
 
         classes = [OpenAnnotation, OpenValues, MapCoordinates, ShowValueColor, ModifyCoordinates]  # Include your new pages here
-        sketches = [(OpenSketch, "Open Sketch File For Mapping", "sketch_file_for_mapping", "c:/Users/NITru/OneDrive/Documents/PhD_work/GitHub/BioSketchMapper/small_map_sketch_file_Picture1.png", "OpenSketchForMapping"),
-                    (OpenSketch, "Open Sketch File", "sketch_file", "c:/Users/NITru/OneDrive/Documents/PhD_work/GitHub/BioSketchMapper/small_sketch_file_Picture1bw.png", "OpenSketch")]
+        sketches = [(OpenSketch, "Open Sketch File For Mapping", "sketch_file_for_mapping", os.path.join(script_dir, "small_map_sketch_file_Picture1.png"), "OpenSketchForMapping"),
+                    (OpenSketch, "Open Sketch File", "sketch_file", os.path.join(script_dir, "small_sketch_file_Picture1bw.png"), "OpenSketch")]
 
         for F, text, var, default_file, tab_name in sketches:
             frame = F(parent=notebook, controller=self.controller, button_text=text, sketch_file_variable=var, default_file=default_file)
@@ -78,8 +79,6 @@ class StartPage(tk.Frame):
             notebook.add(frame, text=page_name)
 
         notebook.pack(expand=1, fill='both')
-
-
 
 
 class MapCoordinates(tk.Frame):
@@ -170,7 +169,7 @@ class MapCoordinates(tk.Frame):
         df = create_dataframe_from_collection(instances)
         
         # Save the collection to a file using pickle
-        with open("c:/Users/NITru/OneDrive/Documents/PhD_work/GitHub/BioSketchMapper/coords_collection_output.pkl", "wb") as f:
+        with open("coords_collection_output.pkl", "wb") as f:
             pickle.dump(instances, f)
 
         # Change the button text and command back to original
@@ -285,7 +284,7 @@ class ShowValueColor(tk.Frame):
 
     def map_values(self):
         print(self.controller.values) 
-        file_path = "c:/Users/NITru/OneDrive/Documents/PhD_work/GitHub/BioSketchMapper/coords_collection_output.pkl"
+        file_path = os.path.join(script_dir, "coords_collection_output.pkl")
         
         if os.path.exists(file_path):
             # Load the instances from the file
@@ -339,7 +338,7 @@ class ModifyCoordinates(tk.Frame):
         self.instructions = tk.Label(self, text="Click on the instance you want to change.")
         self.instructions.pack()
 
-        file_path = "c:/Users/NITru/OneDrive/Documents/PhD_work/GitHub/BioSketchMapper/coords_collection_output.pkl"
+        file_path = os.path.join(script_dir, "coords_collection_output.pkl")
 
         if os.path.exists(file_path):
             # Load the instances from the file
@@ -390,7 +389,7 @@ class ModifyCoordinates(tk.Frame):
         self.canvas.draw()
 
     def save_and_exit(self):
-        file_path = "c:/Users/NITru/OneDrive/Documents/PhD_work/GitHub/BioSketchMapper/coords_collection_output.pkl"
+        file_path = os.path.join(script_dir, "coords_collection_output.pkl")
 
         # Save the instances back to the file
         with open(file_path, "wb") as f:
@@ -457,7 +456,7 @@ class OpenAnnotation(tk.Frame):
         self.open_file_button.pack(side='top')
 
         # Check if default file exists and open it
-        default_file = "c:/Users/NITru/OneDrive/Documents/PhD_work/GitHub/BioSketchMapper/input_annotation_file.txt"
+        default_file = os.path.join(script_dir, "input_annotation_file.txt")
         if os.path.exists(default_file):
             self.data_file = default_file
             self.open_file(self.data_file)
@@ -515,7 +514,7 @@ class OpenValues(tk.Frame):
         self.open_file_button.pack(side='top')
 
         # Check if default file exists and open it
-        default_file = "c:/Users/NITru/OneDrive/Documents/PhD_work/GitHub/BioSketchMapper/file_with_values.txt"
+        default_file = os.path.join(script_dir, "file_with_values.txt") 
         if os.path.exists(default_file):
             self.data_file = default_file
             self.open_file(self.data_file)
