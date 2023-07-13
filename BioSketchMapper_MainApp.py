@@ -87,7 +87,7 @@ class StartPage(tk.Frame):
 
         self.frames = {}
 
-        classes = [OpenAnnotation, OpenValues, PageOne, PageTwo, PageThree]  # Include your new pages here
+        classes = [OpenAnnotation, OpenValues, MapCoordinates, ShowValueColor, ModifyCoordinates]  # Include your new pages here
         sketches = [(OpenSketch, "Open Sketch File For Mapping", "sketch_file_for_mapping", "c:/Users/NITru/OneDrive/Documents/PhD_work/GitHub/BioSketchMapper/small_map_sketch_file_Picture1.png", "OpenSketchForMapping"),
                     (OpenSketch, "Open Sketch File", "sketch_file", "c:/Users/NITru/OneDrive/Documents/PhD_work/GitHub/BioSketchMapper/small_sketch_file_Picture1bw.png", "OpenSketch")]
 
@@ -127,13 +127,17 @@ def find_coords(figure_file):
             return x, y
 
 
-class PageOne(tk.Frame):
+class MapCoordinates(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         self.controller = controller
-
+        
         self.figure = plt.Figure()
         self.ax = self.figure.add_subplot(111)
+
+        # Create a label to display the instance name
+        self.instance_label = tk.Label(self, text="")
+        self.instance_label.pack(side='top')
 
         self.canvas = FigureCanvasTkAgg(self.figure, self)
         self.canvas.get_tk_widget().pack()
@@ -144,10 +148,18 @@ class PageOne(tk.Frame):
         self.find_coords_button = tk.Button(self, text="Find coordinates", command=self.find_coordinates)
         self.find_coords_button.pack()
 
-    
+        self.cid = None
+
     def find_coordinates(self):
+        self.find_coords_button.pack_forget()  # Hide the button
+
         map_sketch_file = self.controller.sketch_file_for_mapping
         instances = self.controller.instances
+        print(len(instances))
+        self.current_instance_index = 0  # Initialize current instance index
+
+        # Set the label text to the name of the first instance
+        self.instance_label.config(text=f"Click inside the plot to map: {instances[self.current_instance_index].name}")
 
         # Load image
         image = mpimg.imread(map_sketch_file)
@@ -158,27 +170,55 @@ class PageOne(tk.Frame):
 
         # Capture click events
         def onclick(event):
-            if event.button is MouseButton.LEFT:
-                # print(f"{event.xdata:.2f},{event.ydata:.2f}")
+            print(self.current_instance_index)
+            if event.button is MouseButton.LEFT and event.xdata is not None and event.ydata is not None:
                 x = round(event.xdata / 10) * 10
                 y = round(event.ydata / 10) * 10
-                for instance in instances:
-                    print(instance.name)
+
+                # Assign coordinates to the current instance
+                if self.current_instance_index < len(instances):
+                    instance = instances[self.current_instance_index]
+
                     instance.x = x
                     instance.y = y
 
-        cid = self.figure.canvas.mpl_connect('button_press_event', onclick)
+                    # plot point at the instance's coordinates
+                    self.ax.plot(x, y, marker='x', color='black')
+
+                    # Move to the next instance
+                    self.current_instance_index += 1
+
+                    # Update the label text to the name of the next instance, if there is one
+                    if self.current_instance_index < len(instances):
+                        next_instance = instances[self.current_instance_index]
+                        self.instance_label.config(text=f"Click inside the plot to map: {next_instance.name}")
+                    else:
+                        self.instance_label.config(text="Finished finding coordinates")
+
+                        # Reset current instance index to 0 and make the button reappear
+                        self.current_instance_index = 0
+                        self.find_coords_button.pack()
+                        # break
+
+                    # redraw the canvas
+                    self.canvas.draw()
+        
+        # Disconnect previous click listener if it exists
+        if self.cid is not None:
+            self.figure.canvas.mpl_disconnect(self.cid)
+
+        self.cid = self.figure.canvas.mpl_connect('button_press_event', onclick)
         self.canvas.draw()
 
         df = create_dataframe_from_collection(instances)
         # plot_coords(df)
 
         # Save the collection to a file using pickle
-        with open("coords_collection_output.pkl", "wb") as f:
+        with open("c:/Users/NITru/OneDrive/Documents/PhD_work/GitHub/BioSketchMapper/coords_collection_output.pkl", "wb") as f:
             pickle.dump(instances, f)
 
 
-class PageTwo(tk.Frame):
+class ShowValueColor(tk.Frame):
     # Corresponds to "Map values"
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
@@ -192,7 +232,7 @@ class PageTwo(tk.Frame):
         pass
 
 
-class PageThree(tk.Frame):
+class ModifyCoordinates(tk.Frame):
     # Corresponds to "Modify coordinates"
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
@@ -221,7 +261,6 @@ class OpenSketch(tk.Frame):
             self.sketch_file = default_file
             self.load_image(default_file)
             setattr(self.controller, sketch_file_variable, self.sketch_file)
-
 
     def open_file(self):
         self.sketch_file = filedialog.askopenfilename()
@@ -349,11 +388,16 @@ class OpenValues(tk.Frame):
             # Change the text of the button
             self.open_file_button.config(text="Change Data File with Values")
 
+            self.controller.values = self.create_value_dict()  # Store the values in the controller
+
     def create_value_dict(self):
         with open(self.data_file) as fin:
+            next(fin)  # Skip the header row
             rows = (line.strip('\n').split('\t') for line in fin)
             input_values = {row[0]: float(row[1]) for row in rows}
         return input_values
+    
+    
     
 
 class value_on_figure():
