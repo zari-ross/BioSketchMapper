@@ -216,7 +216,7 @@ def plot_coords(data_inp, sketch_file, ax, fig, highlight_gene=None, colorbar_ow
     img = plt.imread(sketch_file)
 
     ax.clear()  # clear the axes
-    ax.imshow(img)  # , extent=[0, 500, 0, 500]
+    im = ax.imshow(img)  # , extent=[0, 500, 0, 500]
 
     # Plot data points
     cmap = plt.get_cmap("RdYlGn")
@@ -225,9 +225,10 @@ def plot_coords(data_inp, sketch_file, ax, fig, highlight_gene=None, colorbar_ow
               edgecolors='black', linewidths=1,
               cmap=cmap)
     
-    # Add color bar
+    # Add colorbar for image
     if colorbar_owner is not None:
-        colorbar_owner.colorbar = fig.colorbar(scatter)
+        cax = fig.add_axes([ax.get_position().x1+0.01,ax.get_position().y0,0.02,ax.get_position().height])
+        colorbar_owner.colorbar = fig.colorbar(scatter, cax=cax)
 
     # Plot NaN data points
     ax.scatter(nan_data['x'], nan_data['y'], s=100,
