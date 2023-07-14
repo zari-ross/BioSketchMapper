@@ -1,16 +1,15 @@
+#! /usr/bin/env python3
 import os
 import tkinter as tk
 from tkinter import filedialog
 from tkinter import ttk
-from matplotlib.figure import Figure
-from PIL import Image, ImageTk
-from pandastable import Table
+from PIL import Image
 import pandas as pd
 import matplotlib.pyplot as plt
-from mpl_point_clicker import clicker
 import pickle
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
+# from matplotlib.backends.backend_tkagg import NavigationToolbar2Tk
 # Add to the classes to be able zoom in on the plots:
         # self.toolbar = NavigationToolbar2Tk(self.canvas, self)
         # self.toolbar.update()
