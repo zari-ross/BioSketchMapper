@@ -467,13 +467,17 @@ class OpenSketch(ctk.CTkFrame):
         self.image_label.configure(image=tk_image)
         self.image_label.image = tk_image  # Keep a reference to the image to prevent it from being garbage collected
 
-class OpenAnnotation(ctk.CTkFrame):
+
+class OpenAnnotation(tk.Frame):
     def __init__(self, parent, controller):
-        ctk.CTkFrame.__init__(self, parent)
+        tk.Frame.__init__(self, parent)
         self.controller = controller
         self.data_file = None  # Initialize data_file variable
+        self.dataframe = None  # Initialize dataframe variable
+        self.table_frame = tk.Frame(self)  # Frame to contain the table
+        self.table_frame.pack()
         self.open_file_button = ctk.CTkButton(self, text="Open Annotation Data File", command=self.open_file)
-        self.open_file_button.grid(row=1, column=0)  # use grid instead of pack
+        self.open_file_button.pack(side='bottom')
 
         # Check if default file exists and open it
         default_file = "input_annotation_file.txt"
@@ -502,45 +506,36 @@ class OpenAnnotation(ctk.CTkFrame):
             # Create a dataframe from the list of instances
             self.dataframe = pd.DataFrame([instance.__dict__ for instance in instances])
 
+            # Clear the table frame
+            for widget in self.table_frame.winfo_children():
+                widget.destroy()
+
             # Create table
-            self.create_table()
+            self.table = Table(self.table_frame, dataframe=self.dataframe, showtoolbar=True, showstatusbar=True)
+
+            # Display the table
+            self.table.show()
 
             # Move the button to the bottom
-            self.open_file_button.grid_forget()
-            self.open_file_button.grid(row=1, column=0)  # use grid instead of pack
+            self.open_file_button.pack_forget()
+            self.open_file_button.pack(side='bottom')
 
             # Change the text of the button
             self.open_file_button.configure(text="Change Annotation Data File")
 
             self.controller.instances = instances  # Store the instances in the controller
 
-    def create_table(self):
-        for widget in self.grid_slaves():
-            if int(widget.grid_info()["row"]) > 1:
-                widget.destroy()
 
-        for r, row in self.dataframe.iterrows():
-            for c, value in enumerate(row):
-                cell = ctk.CTkEntry(self)
-                cell.insert(0, str(value))  # Convert value to a string
-                cell.grid(row=r+2, column=c)
-
-from PyQt5.QtWidgets import QFrame, QVBoxLayout, QTableWidget, QPushButton, QFileDialog, QTableWidgetItem
-
-class OpenValues(QFrame):
-    def __init__(self, controller):
-        super().__init__()
+class OpenValues(ctk.CTkFrame):
+    def __init__(self, parent, controller):
+        ctk.CTkFrame.__init__(self, parent)
         self.controller = controller
         self.data_file = None  # Initialize data_file variable
         self.dataframe = None  # Initialize dataframe variable
-        self.layout = QVBoxLayout(self)
-
-        self.table = QTableWidget(self)
-        self.layout.addWidget(self.table)
-
-        self.open_file_button = QPushButton("Open Data File with Values", self)
-        self.open_file_button.clicked.connect(self.open_file)
-        self.layout.addWidget(self.open_file_button)
+        self.table_frame = ctk.CTkScrollableFrame(self, width=500, height=500)  # Frame to contain the table
+        self.table_frame.pack()
+        self.open_file_button = ctk.CTkButton(self, text="Open Data File with Values", command=self.open_file)
+        self.open_file_button.pack(side='bottom')
 
         # Check if default file exists and open it
         default_file = "file_with_values.txt"
@@ -550,7 +545,7 @@ class OpenValues(QFrame):
 
     def open_file(self, filename=None):
         if filename is None:
-            self.data_file, _ = QFileDialog.getOpenFileName()
+            self.data_file = filedialog.askopenfilename()
         else:
             self.data_file = filename
 
@@ -559,20 +554,15 @@ class OpenValues(QFrame):
             self.dataframe = pd.read_csv(self.data_file, sep='\t')
 
             # Clear the table frame
-            self.table.clear()
+            for widget in self.table_frame.winfo_children():
+                widget.destroy()
 
-            # Create table
-            self.table.setRowCount(len(self.dataframe.index))
-            self.table.setColumnCount(len(self.dataframe.columns))
-            self.table.setHorizontalHeaderLabels(self.dataframe.columns)
-
-            for row in self.dataframe.iterrows():
-                for col, value in enumerate(row[1]):
-                    item = QTableWidgetItem(str(value))
-                    self.table.setItem(row[0], col, item)
+            # Display the dataframe
+            self.display_dataframe(self.dataframe, self.table_frame)
 
             # Change the text of the button
-            self.open_file_button.setText("Change Data File with Values")
+            self.open_file_button.configure(text="Change Data File with Values")
+            self.open_file_button.pack(side='bottom')
 
             self.controller.values = self.create_value_dict()  # Store the values in the controller
 
@@ -583,6 +573,13 @@ class OpenValues(QFrame):
             input_values = {row[0]: float(row[1]) for row in rows}
         return input_values
     
+    def display_dataframe(self, df, parent):
+        for i, column in enumerate(df.columns):
+            ctk.CTkLabel(parent, text=column).grid(row=0, column=i)
+        for row in range(len(df)):
+            for column in range(len(df.columns)):
+                ctk.CTkLabel(parent, text=df.iat[row, column]).grid(row=row+1, column=column)
+
 
 class value_on_figure():
     __name = None
