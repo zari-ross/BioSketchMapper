@@ -13,30 +13,27 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolb
 import matplotlib.image as mpimg
 from matplotlib.backend_bases import MouseButton
 
-script_dir = os.path.dirname(os.path.realpath(__file__))  # Get the directory of the current script
-
 class MainApplication(tk.Tk):
-
     def __init__(self, *args, **kwargs):
         tk.Tk.__init__(self, *args, **kwargs)
 
-        self.title("Application")
+        self.title("BioSketchMapper")
         self.geometry("800x600")
-        
+
         container = tk.Frame(self)
-        container.pack(side="top", fill="both", expand=True)
+        container.pack(fill='both', expand=True)  # Updated this line
+
         container.grid_rowconfigure(0, weight=1)
         container.grid_columnconfigure(0, weight=1)
 
         self.frames = {}
-        for F in (StartPage,):  # Only create StartPage here
+        for F in (StartPage, ShowValueColor):  # Create StartPage and ShowValueColor here
             page_name = F.__name__
             frame = F(parent=container, controller=self)
             self.frames[page_name] = frame
             frame.grid(row=0, column=0, sticky="nsew")
 
         self.show_frame("StartPage")
-
 
     def show_frame(self, page_name):
         '''Show a frame for the given page name'''
@@ -64,8 +61,8 @@ class StartPage(tk.Frame):
         self.frames = {}
 
         classes = [OpenAnnotation, OpenValues, MapCoordinates, ShowValueColor, ModifyCoordinates]  # Include your new pages here
-        sketches = [(OpenSketch, "Open Sketch File For Mapping", "sketch_file_for_mapping", os.path.join(script_dir, "small_map_sketch_file_Picture1.png"), "OpenSketchForMapping"),
-                    (OpenSketch, "Open Sketch File", "sketch_file", os.path.join(script_dir, "small_sketch_file_Picture1bw.png"), "OpenSketch")]
+        sketches = [(OpenSketch, "Open Sketch File For Mapping", "sketch_file_for_mapping", "small_map_sketch_file_Picture1.png", "OpenSketchForMapping"),
+                    (OpenSketch, "Open Sketch File", "sketch_file", "small_sketch_file_Picture1bw.png", "OpenSketch")]
 
         for F, text, var, default_file, tab_name in sketches:
             frame = F(parent=notebook, controller=self.controller, button_text=text, sketch_file_variable=var, default_file=default_file)
@@ -78,7 +75,7 @@ class StartPage(tk.Frame):
             self.frames[page_name] = frame
             notebook.add(frame, text=page_name)
 
-        notebook.pack(expand=1, fill='both')
+        notebook.pack(fill='both', expand=True)
 
 
 class MapCoordinates(tk.Frame):
@@ -94,7 +91,7 @@ class MapCoordinates(tk.Frame):
         self.instance_label.pack(side='top')
 
         self.canvas = FigureCanvasTkAgg(self.figure, self)
-        self.canvas.get_tk_widget().pack()
+        self.canvas.get_tk_widget().pack(fill='both', expand=True)  # Updated this line
 
         self.toolbar = NavigationToolbar2Tk(self.canvas, self)
         self.toolbar.update()
@@ -109,7 +106,6 @@ class MapCoordinates(tk.Frame):
 
         map_sketch_file = self.controller.sketch_file_for_mapping
         instances = self.controller.instances
-        print(len(instances))
         self.current_instance_index = 0  # Initialize current instance index
 
         # Set the label text to the name of the first instance
@@ -124,7 +120,6 @@ class MapCoordinates(tk.Frame):
 
         # Capture click events
         def onclick(event):
-            print(self.current_instance_index)
             if event.button is MouseButton.LEFT and event.xdata is not None and event.ydata is not None:
                 x = round(event.xdata / 10) * 10
                 y = round(event.ydata / 10) * 10
@@ -284,8 +279,7 @@ class ShowValueColor(tk.Frame):
                         instance.expression = v
 
     def map_values(self):
-        print(self.controller.values) 
-        file_path = os.path.join(script_dir, "coords_collection_output.pkl")
+        file_path = "coords_collection_output.pkl"  # os.path.join(script_dir, "coords_collection_output.pkl")
         
         if os.path.exists(file_path):
             # Load the instances from the file
@@ -339,7 +333,7 @@ class ModifyCoordinates(tk.Frame):
         self.instructions = tk.Label(self, text="Click on the instance you want to change.")
         self.instructions.pack()
 
-        file_path = os.path.join(script_dir, "coords_collection_output.pkl")
+        file_path = "coords_collection_output.pkl"
 
         if os.path.exists(file_path):
             # Load the instances from the file
@@ -390,7 +384,7 @@ class ModifyCoordinates(tk.Frame):
         self.canvas.draw()
 
     def save_and_exit(self):
-        file_path = os.path.join(script_dir, "coords_collection_output.pkl")
+        file_path = "coords_collection_output.pkl"
 
         # Save the instances back to the file
         with open(file_path, "wb") as f:
@@ -407,7 +401,10 @@ class OpenSketch(tk.Frame):
         self.controller = controller
         self.sketch_file = None  # Initialize sketch_file variable
         self.image_label = tk.Label(self)  # Label to display the image
-        self.image_label.pack()
+        self.image_label.pack(fill='both', expand=True)  # Modified this line
+
+        self.bind("<Configure>", self.resize_image)  # Bind resize event to a method
+
         self.open_file_button = tk.Button(self, text=button_text, command=self.open_file)
         self.open_file_button.pack()
 
@@ -416,6 +413,27 @@ class OpenSketch(tk.Frame):
             self.sketch_file = default_file
             self.load_image(default_file)
             setattr(self.controller, sketch_file_variable, self.sketch_file)
+
+    def resize_image(self, event):
+        if self.orig_image:  # if an image has been loaded
+            # Calculate the ratio of old width/height and new width/height
+            ratio_w = event.width / self.orig_image.width
+            ratio_h = event.height / self.orig_image.height
+            ratio = min(ratio_w, ratio_h)
+
+            # Calculate new width and height preserving aspect ratio
+            new_width = int(self.orig_image.width * ratio)
+            new_height = int(self.orig_image.height * ratio)
+            
+            # Perform the resize operation
+            image = self.orig_image.resize((new_width, new_height), Image.LANCZOS)
+            
+            # Convert the image to a format Tkinter can use
+            tk_image = ImageTk.PhotoImage(image)
+
+            # Update the label with the new image
+            self.image_label.config(image=tk_image)
+            self.image_label.image = tk_image  # Keep a reference to the image to prevent it from being garbage collected
 
     def open_file(self):
         self.sketch_file = filedialog.askopenfilename()
@@ -431,14 +449,14 @@ class OpenSketch(tk.Frame):
 
     def load_image(self, file_path):
         # Load the image with Pillow
-        image = Image.open(file_path)
+        self.orig_image = Image.open(file_path)  # Save original image data here
 
         # Resize the image if it's too large for your GUI, you can modify the code below
         max_size = (800, 600)
-        image.thumbnail(max_size)
+        self.orig_image.thumbnail(max_size)
 
         # Convert the image to a format Tkinter can use
-        tk_image = ImageTk.PhotoImage(image)
+        tk_image = ImageTk.PhotoImage(self.orig_image)
 
         # Update the label with the new image
         self.image_label.config(image=tk_image)
@@ -457,7 +475,7 @@ class OpenAnnotation(tk.Frame):
         self.open_file_button.pack(side='top')
 
         # Check if default file exists and open it
-        default_file = os.path.join(script_dir, "input_annotation_file.txt")
+        default_file = "input_annotation_file.txt"
         if os.path.exists(default_file):
             self.data_file = default_file
             self.open_file(self.data_file)
@@ -515,7 +533,7 @@ class OpenValues(tk.Frame):
         self.open_file_button.pack(side='top')
 
         # Check if default file exists and open it
-        default_file = os.path.join(script_dir, "file_with_values.txt") 
+        default_file = "file_with_values.txt"
         if os.path.exists(default_file):
             self.data_file = default_file
             self.open_file(self.data_file)
@@ -578,5 +596,6 @@ class value_on_figure():
         self.y = self.y + y_move
 
 if __name__ == "__main__":
+    script_dir = os.path.dirname(os.path.realpath(__file__))  # Get the directory of the current script
     app = MainApplication()
     app.mainloop()
