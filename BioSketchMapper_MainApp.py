@@ -22,7 +22,7 @@ class MainApplication(ctk.CTk):
         self.title("BioSketchMapper")
         self.geometry("800x600")
 
-        container = tk.Frame(self)
+        container = ctk.CTkFrame(self)
         container.pack(fill='both', expand=True)  # Updated this line
 
         container.grid_rowconfigure(0, weight=1)
@@ -53,9 +53,9 @@ class YourControllerClass(tk.Tk):  # or whatever your controller class is
         self.values = None
 
 
-class StartPage(tk.Frame):
+class StartPage(ctk.CTkFrame):
     def __init__(self, parent, controller):
-        tk.Frame.__init__(self, parent)
+        ctk.CTkFrame.__init__(self, parent)
         self.controller = controller
 
         notebook = ttk.Notebook(self)
@@ -417,19 +417,17 @@ class ModifyCoordinates(tk.Frame):
         self.instructions.config(text="")  # Clear the instructions
 
 
-class OpenSketch(tk.Frame):
+class OpenSketch(ctk.CTkFrame):
     def __init__(self, parent, controller, button_text, sketch_file_variable, default_file):
-        tk.Frame.__init__(self, parent)
+        ctk.CTkFrame.__init__(self, parent)
         self.controller = controller
         self.sketch_file_variable = sketch_file_variable  # Store the sketch_file_variable
         self.sketch_file = None  # Initialize sketch_file variable
-        self.image_label = tk.Label(self)  # Label to display the image
+        self.image_label = ctk.CTkLabel(self, text="")  # Label to display the image
         self.image_label.grid(row=0, column=0, sticky='nsew')  # use grid instead of pack
 
         self.rowconfigure(0, weight=1)  # Make the image_label row expandable
         self.columnconfigure(0, weight=1)  # Make the column expandable
-
-        self.bind("<Configure>", self.resize_image)  # Bind resize event to a method
 
         self.open_file_button = ctk.CTkButton(self, text=button_text, command=self.open_file)
         self.open_file_button.grid(row=1, column=0)  # use grid instead of pack
@@ -439,30 +437,6 @@ class OpenSketch(tk.Frame):
             self.sketch_file = default_file
             self.load_image(default_file)
             setattr(self.controller, self.sketch_file_variable, self.sketch_file)  # Use the instance variable here
-
-    def resize_image(self, event):
-        if self.orig_image:  # if an image has been loaded
-            # Calculate the ratio of old width/height and new width/height
-
-            self.update()  # Ensure that the sizes are updated
-
-            ratio_w = event.width / self.orig_image.width
-            ratio_h = (event.height - self.open_file_button.winfo_height()) / self.orig_image.height
-            ratio = min(ratio_w, ratio_h)
-
-            # Calculate new width and height preserving aspect ratio
-            new_width = int(self.orig_image.width * ratio)
-            new_height = int(self.orig_image.height * ratio)
-
-            # Perform the resize operation
-            image = self.orig_image.resize((new_width, new_height), Image.LANCZOS)
-
-            # Convert the image to a format Tkinter can use
-            tk_image = ImageTk.PhotoImage(image)
-
-            # Update the label with the new image
-            self.image_label.config(image=tk_image)
-            self.image_label.image = tk_image  # Keep a reference to the image to prevent it from being garbage collected
 
     def open_file(self):
         self.sketch_file = filedialog.askopenfilename()
@@ -483,28 +457,23 @@ class OpenSketch(tk.Frame):
         # Load the image with Pillow
         self.orig_image = Image.open(file_path)  # Save original image data here
 
-        # Resize the image if it's too large for your GUI, you can modify the code below
-        max_size = (800, 600)
-        self.orig_image.thumbnail(max_size)
+        # Get the size of the original image
+        orig_size = self.orig_image.size
 
         # Convert the image to a format Tkinter can use
-        tk_image = ImageTk.PhotoImage(self.orig_image)
+        tk_image = ctk.CTkImage(self.orig_image, size=orig_size)
 
         # Update the label with the new image
-        self.image_label.config(image=tk_image)
+        self.image_label.configure(image=tk_image)
         self.image_label.image = tk_image  # Keep a reference to the image to prevent it from being garbage collected
 
-
-class OpenAnnotation(tk.Frame):
+class OpenAnnotation(ctk.CTkFrame):
     def __init__(self, parent, controller):
-        tk.Frame.__init__(self, parent)
+        ctk.CTkFrame.__init__(self, parent)
         self.controller = controller
         self.data_file = None  # Initialize data_file variable
-        self.dataframe = None  # Initialize dataframe variable
-        self.table_frame = tk.Frame(self)  # Frame to contain the table
-        self.table_frame.pack()
         self.open_file_button = ctk.CTkButton(self, text="Open Annotation Data File", command=self.open_file)
-        self.open_file_button.pack(side='bottom')
+        self.open_file_button.grid(row=1, column=0)  # use grid instead of pack
 
         # Check if default file exists and open it
         default_file = "input_annotation_file.txt"
@@ -533,36 +502,45 @@ class OpenAnnotation(tk.Frame):
             # Create a dataframe from the list of instances
             self.dataframe = pd.DataFrame([instance.__dict__ for instance in instances])
 
-            # Clear the table frame
-            for widget in self.table_frame.winfo_children():
-                widget.destroy()
-
             # Create table
-            self.table = Table(self.table_frame, dataframe=self.dataframe, showtoolbar=True, showstatusbar=True)
-
-            # Display the table
-            self.table.show()
+            self.create_table()
 
             # Move the button to the bottom
-            self.open_file_button.pack_forget()
-            self.open_file_button.pack(side='bottom')
+            self.open_file_button.grid_forget()
+            self.open_file_button.grid(row=1, column=0)  # use grid instead of pack
 
             # Change the text of the button
             self.open_file_button.configure(text="Change Annotation Data File")
 
             self.controller.instances = instances  # Store the instances in the controller
 
+    def create_table(self):
+        for widget in self.grid_slaves():
+            if int(widget.grid_info()["row"]) > 1:
+                widget.destroy()
 
-class OpenValues(tk.Frame):
-    def __init__(self, parent, controller):
-        tk.Frame.__init__(self, parent)
+        for r, row in self.dataframe.iterrows():
+            for c, value in enumerate(row):
+                cell = ctk.CTkEntry(self)
+                cell.insert(0, str(value))  # Convert value to a string
+                cell.grid(row=r+2, column=c)
+
+from PyQt5.QtWidgets import QFrame, QVBoxLayout, QTableWidget, QPushButton, QFileDialog, QTableWidgetItem
+
+class OpenValues(QFrame):
+    def __init__(self, controller):
+        super().__init__()
         self.controller = controller
         self.data_file = None  # Initialize data_file variable
         self.dataframe = None  # Initialize dataframe variable
-        self.table_frame = tk.Frame(self)  # Frame to contain the table
-        self.table_frame.pack()
-        self.open_file_button = ctk.CTkButton(self, text="Open Data File with Values", command=self.open_file)
-        self.open_file_button.pack(side='bottom')
+        self.layout = QVBoxLayout(self)
+
+        self.table = QTableWidget(self)
+        self.layout.addWidget(self.table)
+
+        self.open_file_button = QPushButton("Open Data File with Values", self)
+        self.open_file_button.clicked.connect(self.open_file)
+        self.layout.addWidget(self.open_file_button)
 
         # Check if default file exists and open it
         default_file = "file_with_values.txt"
@@ -572,7 +550,7 @@ class OpenValues(tk.Frame):
 
     def open_file(self, filename=None):
         if filename is None:
-            self.data_file = filedialog.askopenfilename()
+            self.data_file, _ = QFileDialog.getOpenFileName()
         else:
             self.data_file = filename
 
@@ -581,18 +559,20 @@ class OpenValues(tk.Frame):
             self.dataframe = pd.read_csv(self.data_file, sep='\t')
 
             # Clear the table frame
-            for widget in self.table_frame.winfo_children():
-                widget.destroy()
+            self.table.clear()
 
             # Create table
-            self.table = Table(self.table_frame, dataframe=self.dataframe, showtoolbar=True, showstatusbar=True)
+            self.table.setRowCount(len(self.dataframe.index))
+            self.table.setColumnCount(len(self.dataframe.columns))
+            self.table.setHorizontalHeaderLabels(self.dataframe.columns)
 
-            # Display the table
-            self.table.show()
+            for row in self.dataframe.iterrows():
+                for col, value in enumerate(row[1]):
+                    item = QTableWidgetItem(str(value))
+                    self.table.setItem(row[0], col, item)
 
             # Change the text of the button
-            self.open_file_button.configure(text="Change Data File with Values")
-            self.open_file_button.pack(side='bottom')
+            self.open_file_button.setText("Change Data File with Values")
 
             self.controller.values = self.create_value_dict()  # Store the values in the controller
 
