@@ -12,10 +12,12 @@ import pickle
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 import matplotlib.image as mpimg
 from matplotlib.backend_bases import MouseButton
+import customtkinter as ctk
+ctk.set_appearance_mode("System") 
 
-class MainApplication(tk.Tk):
+class MainApplication(ctk.CTk):
     def __init__(self, *args, **kwargs):
-        tk.Tk.__init__(self, *args, **kwargs)
+        ctk.CTk.__init__(self, *args, **kwargs)
 
         self.title("BioSketchMapper")
         self.geometry("800x600")
@@ -86,18 +88,23 @@ class MapCoordinates(tk.Frame):
         self.figure = plt.Figure()
         self.ax = self.figure.add_subplot(111)
 
-        # Create a label to display the instance name
-        self.instance_label = tk.Label(self, text="")
-        self.instance_label.pack(side='top')
-
         self.canvas = FigureCanvasTkAgg(self.figure, self)
-        self.canvas.get_tk_widget().pack(fill='both', expand=True)  # Updated this line
+        self.canvas.get_tk_widget().pack(fill='both', expand=True)
 
         self.toolbar = NavigationToolbar2Tk(self.canvas, self)
         self.toolbar.update()
 
-        self.find_coords_button = tk.Button(self, text="Find coordinates", command=self.find_coordinates)
+        # Create a frame to reserve space for the button
+        self.button_frame = tk.Frame(self)
+        self.button_frame.pack()
+
+        self.find_coords_button = ctk.CTkButton(self.button_frame, text="Find coordinates", command=self.find_coordinates)
         self.find_coords_button.pack()
+
+        # Create a label to display the instance name
+        # Pack it after all other widgets
+        self.instance_label = tk.Label(self, text="")
+        self.instance_label.pack(side='bottom')  # Change side to 'bottom'
 
         self.cid = None
 
@@ -131,7 +138,7 @@ class MapCoordinates(tk.Frame):
                     instance.x = x
                     instance.y = y
 
-                    # plot point at the instance's coordinates
+                    # Plot point at the instance's coordinates
                     self.ax.plot(x, y, marker='x', color='black')
 
                     # Move to the next instance
@@ -144,32 +151,43 @@ class MapCoordinates(tk.Frame):
                     else:
                         self.instance_label.config(text="Finished finding coordinates")
 
+                        # Disconnect the click listener
+                        self.figure.canvas.mpl_disconnect(self.cid)
+                        self.cid = None
+
                         # Reset current instance index to 0 and make the button reappear
                         self.current_instance_index = 0
-                        self.find_coords_button.config(text="Save Results", command=self.save_results)
+                        self.find_coords_button = ctk.CTkButton(self.button_frame, text="Save Results", command=self.save_results)
                         self.find_coords_button.pack()
 
-                    # redraw the canvas
+                    # Redraw the canvas every time a new point is plotted
                     self.canvas.draw()
-        
+
         # Disconnect previous click listener if it exists
         if self.cid is not None:
             self.figure.canvas.mpl_disconnect(self.cid)
 
+        # Connect the click listener
         self.cid = self.figure.canvas.mpl_connect('button_press_event', onclick)
         self.canvas.draw()
 
     def save_results(self):
         instances = self.controller.instances
         df = create_dataframe_from_collection(instances)
-        
+
         # Save the collection to a file using pickle
         with open("coords_collection_output.pkl", "wb") as f:
             pickle.dump(instances, f)
 
-        # Change the button text and command back to original
-        self.find_coords_button.config(text="Find coordinates", command=self.find_coordinates)
-        
+        # Destroy the Save Results button
+        self.find_coords_button.destroy()
+
+        # Recreate the Find coordinates button
+        self.find_coords_button = ctk.CTkButton(self.button_frame, text="Find coordinates", command=self.find_coordinates)
+        self.find_coords_button.pack()
+
+        # Clear the label text
+        self.instance_label.config(text="")
 
 def create_dataframe_from_collection(collection):
     genes = []
@@ -252,12 +270,12 @@ class ShowValueColor(tk.Frame):
         self.figure = plt.Figure()
         self.ax = self.figure.add_subplot(111)
         self.canvas = FigureCanvasTkAgg(self.figure, self)
-        self.canvas.get_tk_widget().pack()
+        self.canvas.get_tk_widget().pack(fill='both', expand=True)
 
-        self.map_values_button = tk.Button(self, text="Map values", command=self.map_values)
+        self.map_values_button = ctk.CTkButton(self, text="Map values", command=self.map_values)
         self.map_values_button.pack()
 
-        self.save_button = tk.Button(self, text="Save Plot", command=self.save_plot)
+        self.save_button = ctk.CTkButton(self, text="Save Plot", command=self.save_plot)
         self.save_button.pack()
 
         self.colorbar = None
@@ -314,24 +332,27 @@ class ModifyCoordinates(tk.Frame):
         self.ax = self.figure.add_subplot(111)
 
         self.canvas = FigureCanvasTkAgg(self.figure, self)
-        self.canvas.get_tk_widget().pack()
+        self.canvas.get_tk_widget().pack(fill='both', expand=True)
 
-        self.modify_coords_button = tk.Button(self, text="Modify coordinates", command=self.modify_coordinates)
+        # Create placeholders for buttons and instructions
+        self.modify_coords_button = ctk.CTkButton(self, text="Modify coordinates", command=self.modify_coordinates)
+        self.save_and_exit_button = ctk.CTkButton(self, text="Save and Exit", command=self.save_and_exit)
+
+        # Pack the button and instruction widgets in the desired order
         self.modify_coords_button.pack()
-
-        self.save_and_exit_button = tk.Button(self, text="Save and Exit", command=self.save_and_exit)
-        self.save_and_exit_button.pack()
+        self.save_and_exit_button.pack_forget()  # Initially, this button is hidden
+        
+        self.instructions = tk.Label(self, text="")
+        self.instructions.pack(side='bottom')  # Initially, this label has no text
 
         self.selected_instance = None
         self.cid = None
         self.instances = None  # New instance variable to store instances
 
     def modify_coordinates(self):
-        self.modify_coords_button.pack_forget()  # Hide the button
-        
-        # Add a label for instructions
-        self.instructions = tk.Label(self, text="Click on the instance you want to change.")
-        self.instructions.pack()
+        self.modify_coords_button.pack_forget()  # Hide the modify button
+        self.save_and_exit_button.pack()  # Show the Save and Exit button
+        self.instructions.config(text="Click on the instance you want to change.")  # Update the instructions
 
         file_path = "coords_collection_output.pkl"
 
@@ -382,7 +403,7 @@ class ModifyCoordinates(tk.Frame):
         # Connect the click listener
         self.cid = self.figure.canvas.mpl_connect('button_press_event', onclick)
         self.canvas.draw()
-
+        
     def save_and_exit(self):
         file_path = "coords_collection_output.pkl"
 
@@ -390,9 +411,10 @@ class ModifyCoordinates(tk.Frame):
         with open(file_path, "wb") as f:
             pickle.dump(self.instances, f)  # Use the new instance variable
 
-        # Show the button again and disconnect the click listener
+        # Hide the Save and Exit button, clear the instructions, and show the Modify button
+        self.save_and_exit_button.pack_forget()
         self.modify_coords_button.pack()
-        self.figure.canvas.mpl_disconnect(self.cid)
+        self.instructions.config(text="")  # Clear the instructions
 
 
 class OpenSketch(tk.Frame):
@@ -409,7 +431,7 @@ class OpenSketch(tk.Frame):
 
         self.bind("<Configure>", self.resize_image)  # Bind resize event to a method
 
-        self.open_file_button = tk.Button(self, text=button_text, command=self.open_file)
+        self.open_file_button = ctk.CTkButton(self, text=button_text, command=self.open_file)
         self.open_file_button.grid(row=1, column=0)  # use grid instead of pack
 
         # Check if default file exists and open it
@@ -452,7 +474,7 @@ class OpenSketch(tk.Frame):
             self.open_file_button.grid(row=1, column=0)  # use grid instead of pack
 
             # Change the text of the button
-            self.open_file_button.config(text="Change Sketch File")
+            self.open_file_button.configure(text="Change Sketch File")
             
             # Save the new sketch_file to controller
             setattr(self.controller, self.sketch_file_variable, self.sketch_file)  # Use the instance variable here
@@ -481,8 +503,8 @@ class OpenAnnotation(tk.Frame):
         self.dataframe = None  # Initialize dataframe variable
         self.table_frame = tk.Frame(self)  # Frame to contain the table
         self.table_frame.pack()
-        self.open_file_button = tk.Button(self, text="Open Annotation Data File", command=self.open_file)
-        self.open_file_button.pack(side='top')
+        self.open_file_button = ctk.CTkButton(self, text="Open Annotation Data File", command=self.open_file)
+        self.open_file_button.pack(side='bottom')
 
         # Check if default file exists and open it
         default_file = "input_annotation_file.txt"
@@ -526,7 +548,7 @@ class OpenAnnotation(tk.Frame):
             self.open_file_button.pack(side='bottom')
 
             # Change the text of the button
-            self.open_file_button.config(text="Change Annotation Data File")
+            self.open_file_button.configure(text="Change Annotation Data File")
 
             self.controller.instances = instances  # Store the instances in the controller
 
@@ -539,8 +561,8 @@ class OpenValues(tk.Frame):
         self.dataframe = None  # Initialize dataframe variable
         self.table_frame = tk.Frame(self)  # Frame to contain the table
         self.table_frame.pack()
-        self.open_file_button = tk.Button(self, text="Open Data File with Values", command=self.open_file)
-        self.open_file_button.pack(side='top')
+        self.open_file_button = ctk.CTkButton(self, text="Open Data File with Values", command=self.open_file)
+        self.open_file_button.pack(side='bottom')
 
         # Check if default file exists and open it
         default_file = "file_with_values.txt"
@@ -569,7 +591,8 @@ class OpenValues(tk.Frame):
             self.table.show()
 
             # Change the text of the button
-            self.open_file_button.config(text="Change Data File with Values")
+            self.open_file_button.configure(text="Change Data File with Values")
+            self.open_file_button.pack(side='bottom')
 
             self.controller.values = self.create_value_dict()  # Store the values in the controller
 
