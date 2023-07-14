@@ -103,7 +103,7 @@ class MapCoordinates(ctk.CTkFrame):
         self.button_frame = ctk.CTkFrame(self)
         self.button_frame.pack()
 
-        self.find_coords_button = ctk.CTkButton(self.button_frame, text="Find coordinates", command=self.find_coordinates)
+        self.find_coords_button = ctk.CTkButton(self.button_frame, text="Map coordinates", command=self.find_coordinates)
         self.find_coords_button.pack()
 
         # Create a label to display the instance name
@@ -188,7 +188,7 @@ class MapCoordinates(ctk.CTkFrame):
         self.find_coords_button.destroy()
 
         # Recreate the Find coordinates button
-        self.find_coords_button = ctk.CTkButton(self.button_frame, text="Find coordinates", command=self.find_coordinates)
+        self.find_coords_button = ctk.CTkButton(self.button_frame, text="Remap coordinates", command=self.find_coordinates)
         self.find_coords_button.pack()
 
         # Clear the label text
@@ -357,62 +357,62 @@ class ModifyCoordinates(ctk.CTkFrame):
         self.instances = None  # New instance variable to store instances
 
     def modify_coordinates(self):
-        self.modify_coords_button.pack_forget()  # Hide the modify button
-        self.save_and_exit_button.pack()  # Show the Save and Exit button
-        self.instructions.configure(text="Click on the instance you want to change.")  # Update the instructions
-
         file_path = "coords_collection_output.pkl"
 
         if os.path.exists(file_path):
+            self.modify_coords_button.pack_forget()  # Hide the modify button
+            self.save_and_exit_button.pack()  # Show the Save and Exit button
+            self.instructions.configure(text="Click on the instance you want to change.")  # Update the instructions
+
             # Load the instances from the file
             with open(file_path, "rb") as f:
                 self.instances = pickle.load(f)  # Use the new instance variable
+
+                df = create_dataframe_from_collection(self.instances)  # Convert instances to dataframe
+
+                # Clear current plot and show instances
+                self.ax.clear()
+                plot_coords(df, sketch_file=self.controller.sketch_file, ax=self.ax, fig=self.figure)
+
+                # Capture click events
+                def onclick(event):
+                    if event.button is MouseButton.LEFT and event.xdata is not None and event.ydata is not None:
+                        x = round(event.xdata / 10) * 10
+                        y = round(event.ydata / 10) * 10
+
+                        if self.selected_instance is None:  # If no instance is currently selected, try to select one
+                            for instance in self.instances:
+                                if abs(instance.x - x) < 10 and abs(instance.y - y) < 10:  # If the click is close to an instance
+                                    self.selected_instance = instance  # Select the instance
+                                    # Only update the instructions when an instance has been successfully selected
+                                    self.instructions.configure(text="Click on the new position.")
+                                    break
+                        else:  # If an instance is currently selected, move it to the new coordinates
+                            self.selected_instance.x = x
+                            self.selected_instance.y = y
+
+                            # Unselect the instance
+                            self.selected_instance = None
+
+                            # Redraw the plot with updated coordinates
+                            self.ax.clear()
+                            df = create_dataframe_from_collection(self.instances)
+                            plot_coords(df, sketch_file=self.controller.sketch_file, ax=self.ax, fig=self.figure)
+                            self.canvas.draw()
+
+                            # Update the instructions after moving the instance
+                            self.instructions.configure(text="Click on the instance you want to change.")
+
+                # Disconnect previous click listener if it exists
+                if self.cid is not None:
+                    self.figure.canvas.mpl_disconnect(self.cid)
+
+                # Connect the click listener
+                self.cid = self.figure.canvas.mpl_connect('button_press_event', onclick)
+                self.canvas.draw()
         else:
             # Show a message telling the user to go to the MapCoordinates tab
             tk.messagebox.showinfo("Information", "No coordinates file found. Please go to the MapCoordinates tab and generate it.")
-
-        df = create_dataframe_from_collection(self.instances)  # Convert instances to dataframe
-
-        # Clear current plot and show instances
-        self.ax.clear()
-        plot_coords(df, sketch_file=self.controller.sketch_file, ax=self.ax, fig=self.figure)
-
-        # Capture click events
-        def onclick(event):
-            if event.button is MouseButton.LEFT and event.xdata is not None and event.ydata is not None:
-                x = round(event.xdata / 10) * 10
-                y = round(event.ydata / 10) * 10
-
-                if self.selected_instance is None:  # If no instance is currently selected, try to select one
-                    for instance in self.instances:
-                        if abs(instance.x - x) < 10 and abs(instance.y - y) < 10:  # If the click is close to an instance
-                            self.selected_instance = instance  # Select the instance
-                            # Only update the instructions when an instance has been successfully selected
-                            self.instructions.configure(text="Click on the new position.")
-                            break
-                else:  # If an instance is currently selected, move it to the new coordinates
-                    self.selected_instance.x = x
-                    self.selected_instance.y = y
-
-                    # Unselect the instance
-                    self.selected_instance = None
-
-                    # Redraw the plot with updated coordinates
-                    self.ax.clear()
-                    df = create_dataframe_from_collection(self.instances)
-                    plot_coords(df, sketch_file=self.controller.sketch_file, ax=self.ax, fig=self.figure)
-                    self.canvas.draw()
-
-                    # Update the instructions after moving the instance
-                    self.instructions.configure(text="Click on the instance you want to change.")
-
-        # Disconnect previous click listener if it exists
-        if self.cid is not None:
-            self.figure.canvas.mpl_disconnect(self.cid)
-
-        # Connect the click listener
-        self.cid = self.figure.canvas.mpl_connect('button_press_event', onclick)
-        self.canvas.draw()
         
     def save_and_exit(self):
         file_path = "coords_collection_output.pkl"
