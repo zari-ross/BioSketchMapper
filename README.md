@@ -12,7 +12,8 @@ This tool allows users to interactively analyze and visualize gene expression da
 
 ## Usage
 
-    Run the Python script.
+  Run the Python script.
+    
     The GUI will open. Follow the instructions in the GUI for the analysis.
 
 ## Input
@@ -29,18 +30,19 @@ This tool generates several output files:
     A final visualization of the gene expression data on the chosen image, saved as an SVG file.
     A .pkl file storing the value_on_figure objects created during the analysis.
 
-
 ## Installation
 
 First, ensure that Python 3.7 is installed on your system. 
 
 Clone this repository using git:
-git clone https://github.com/username/BioSketchMapper.git
+
+    git clone https://github.com/username/BioSketchMapper.git
 
 Then, install the required Python packages using pip:
-pip install -r requirements.txt
 
-python BioSketchMapper_GUI.py
+    pip install -r requirements.txt
+    
+    python BioSketchMapper_GUI.py
 
 ## Contributions
 
