@@ -348,11 +348,6 @@ class ModifyCoordinates(tk.Frame):
 
         # Capture click events
         def onclick(event):
-            if self.selected_instance is None:
-                self.instructions.config(text="Click on the new position.")
-            else:
-                self.instructions.config(text="Click on the instance you want to change.")
-
             if event.button is MouseButton.LEFT and event.xdata is not None and event.ydata is not None:
                 x = round(event.xdata / 10) * 10
                 y = round(event.ydata / 10) * 10
@@ -361,6 +356,8 @@ class ModifyCoordinates(tk.Frame):
                     for instance in self.instances:
                         if abs(instance.x - x) < 10 and abs(instance.y - y) < 10:  # If the click is close to an instance
                             self.selected_instance = instance  # Select the instance
+                            # Only update the instructions when an instance has been successfully selected
+                            self.instructions.config(text="Click on the new position.")
                             break
                 else:  # If an instance is currently selected, move it to the new coordinates
                     self.selected_instance.x = x
@@ -374,6 +371,9 @@ class ModifyCoordinates(tk.Frame):
                     df = create_dataframe_from_collection(self.instances)
                     plot_coords(df, sketch_file=self.controller.sketch_file, ax=self.ax, fig=self.figure)
                     self.canvas.draw()
+
+                    # Update the instructions after moving the instance
+                    self.instructions.config(text="Click on the instance you want to change.")
 
         # Disconnect previous click listener if it exists
         if self.cid is not None:
@@ -399,35 +399,42 @@ class OpenSketch(tk.Frame):
     def __init__(self, parent, controller, button_text, sketch_file_variable, default_file):
         tk.Frame.__init__(self, parent)
         self.controller = controller
+        self.sketch_file_variable = sketch_file_variable  # Store the sketch_file_variable
         self.sketch_file = None  # Initialize sketch_file variable
         self.image_label = tk.Label(self)  # Label to display the image
-        self.image_label.pack(fill='both', expand=True)  # Modified this line
+        self.image_label.grid(row=0, column=0, sticky='nsew')  # use grid instead of pack
+
+        self.rowconfigure(0, weight=1)  # Make the image_label row expandable
+        self.columnconfigure(0, weight=1)  # Make the column expandable
 
         self.bind("<Configure>", self.resize_image)  # Bind resize event to a method
 
         self.open_file_button = tk.Button(self, text=button_text, command=self.open_file)
-        self.open_file_button.pack()
+        self.open_file_button.grid(row=1, column=0)  # use grid instead of pack
 
         # Check if default file exists and open it
         if os.path.exists(default_file):
             self.sketch_file = default_file
             self.load_image(default_file)
-            setattr(self.controller, sketch_file_variable, self.sketch_file)
+            setattr(self.controller, self.sketch_file_variable, self.sketch_file)  # Use the instance variable here
 
     def resize_image(self, event):
         if self.orig_image:  # if an image has been loaded
             # Calculate the ratio of old width/height and new width/height
+
+            self.update()  # Ensure that the sizes are updated
+
             ratio_w = event.width / self.orig_image.width
-            ratio_h = event.height / self.orig_image.height
+            ratio_h = (event.height - self.open_file_button.winfo_height()) / self.orig_image.height
             ratio = min(ratio_w, ratio_h)
 
             # Calculate new width and height preserving aspect ratio
             new_width = int(self.orig_image.width * ratio)
             new_height = int(self.orig_image.height * ratio)
-            
+
             # Perform the resize operation
             image = self.orig_image.resize((new_width, new_height), Image.LANCZOS)
-            
+
             # Convert the image to a format Tkinter can use
             tk_image = ImageTk.PhotoImage(image)
 
@@ -442,10 +449,13 @@ class OpenSketch(tk.Frame):
 
             # Move the button to the bottom
             self.open_file_button.pack_forget()
-            self.open_file_button.pack(side='bottom')
+            self.open_file_button.grid(row=1, column=0)  # use grid instead of pack
 
             # Change the text of the button
             self.open_file_button.config(text="Change Sketch File")
+            
+            # Save the new sketch_file to controller
+            setattr(self.controller, self.sketch_file_variable, self.sketch_file)  # Use the instance variable here
 
     def load_image(self, file_path):
         # Load the image with Pillow
