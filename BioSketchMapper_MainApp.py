@@ -19,13 +19,14 @@ import matplotlib.image as mpimg
 from matplotlib.backend_bases import MouseButton
 import customtkinter as ctk
 ctk.set_appearance_mode("System") 
+ctk.set_default_color_theme("green") 
 
 class MainApplication(ctk.CTk):
     def __init__(self, *args, **kwargs):
         ctk.CTk.__init__(self, *args, **kwargs)
 
         self.title("BioSketchMapper")
-        self.geometry("800x600")
+        self.geometry("800x650")
 
         container = ctk.CTkFrame(self)
         container.pack(fill='both', expand=True)  # Updated this line
@@ -114,7 +115,10 @@ class MapCoordinates(ctk.CTkFrame):
         self.cid = None
 
     def find_coordinates(self):
-        self.find_coords_button.pack_forget()  # Hide the button
+        self.find_coords_button.destroy()  # Destroy the button # pack_forget()  # Hide the button
+        self.find_coords_button = ctk.CTkButton(self.button_frame, text="Restart", command=self.find_coordinates)
+        self.find_coords_button.pack()
+
 
         map_sketch_file = self.controller.sketch_file_for_mapping
         instances = self.controller.instances
@@ -162,6 +166,7 @@ class MapCoordinates(ctk.CTkFrame):
 
                         # Reset current instance index to 0 and make the button reappear
                         self.current_instance_index = 0
+                        self.find_coords_button.destroy()
                         self.find_coords_button = ctk.CTkButton(self.button_frame, text="Save Results", command=self.save_results)
                         self.find_coords_button.pack()
 
@@ -283,7 +288,7 @@ class ShowValueColor(ctk.CTkFrame):
         self.map_values_button.pack()
 
         self.save_button = ctk.CTkButton(self, text="Save Plot", command=self.save_plot)
-        self.save_button.pack()
+        self.save_button.pack(pady=2)
 
         self.colorbar = None
 
