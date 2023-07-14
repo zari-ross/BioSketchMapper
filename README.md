@@ -2,11 +2,13 @@
 
 This tool allows users to interactively analyze and visualize gene expression data on a chosen image, which can be a biological pathway, diagram, etc. It can read gene expression data from an input file, allows users to place gene data points on the image, and generates an output showing gene expression levels on the chosen image.
 ## Features
-    *Interactive GUI*: The application provides an intuitive graphical interface, simplifying the task of gene mapping and data analysis.
-    *Custom sketches*: Users can upload their own sketches or diagrams to which gene data points can be mapped.
-    *Gene expression mapping*: The tool can plot specific genes or all genes from the dataset onto the provided sketch.
-    *Flexible data points placement*: Allows for data points to be interactively placed on the image for customized visualization.
-    *Output formats*: The final visualization can be saved as an SVG file, and gene expression data, along with coordinates, can be exported as a CSV file.
+   *Interactive GUI*: The application provides an intuitive graphical interface, simplifying the task of gene mapping and data analysis.
+   *Custom sketches*: Users can upload their own sketches or diagrams to which gene data points can be mapped.
+   *Gene expression mapping*: The tool can plot specific genes or all genes from the dataset onto the provided sketch.
+   *Flexible data points placement*: Allows for data points to be interactively placed on the image for customized visualization.
+   *Output formats*: The final visualization can be saved as an SVG file, and gene expression data, along with coordinates, can be exported as a CSV file.
+
+
 
 ## Usage
 
