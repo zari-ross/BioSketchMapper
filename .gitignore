@@ -2,3 +2,9 @@
 *.pyc
 *.pkl
 *.svg
+*.zip
+*Ink
+*spec
+dist*
+*toc
+*exe*
