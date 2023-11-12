@@ -8,3 +8,9 @@
 dist*
 *toc
 *exe*
+*Shortcut*
+*Ink
+*pyz
+*.pkg
+*MainApp.txt
+*MainApp.html
