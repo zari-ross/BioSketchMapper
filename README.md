@@ -2,55 +2,47 @@
 
 This tool allows users to interactively analyze and visualize gene expression data on a chosen image, which can be a biological pathway, diagram, etc. It can read gene expression data from an input file, allows users to place gene data points on the image, and generates an output showing gene expression levels on the chosen image.
 ## Features
+   *Interactive GUI*: The application provides an intuitive graphical interface, simplifying the task of gene mapping and data analysis.
+   *Custom sketches*: Users can upload their own sketches or diagrams to which gene data points can be mapped.
+   *Gene expression mapping*: The tool can plot specific genes or all genes from the dataset onto the provided sketch.
+   *Flexible data points placement*: Allows for data points to be interactively placed on the image for customized visualization.
+   *Output formats*: The final visualization can be saved as an SVG file, and gene expression data, along with coordinates, can be exported as a CSV file.
 
-    Interactive GUI for data analysis
-    Plots gene expression data on a given image (pathway)
-    Visualizes specific genes or all genes in the dataset
-    Highlights specific genes upon user request
-    Allows for data points to be placed on the image interactively
-    Outputs final visualization as an SVG file
-    Exports gene expression data and coordinates as a CSV file
+
 
 ## Usage
 
-    Run the Python script.
-    When prompted, input a name for your sketch/pathway/condition.
-    Provide a name for your experiment.
+  Run the Python script.
+    
     The GUI will open. Follow the instructions in the GUI for the analysis.
 
 ## Input
 
-This tool requires two input files:
+The tool requires four input files:
 
-    An image file (.jpg, .png, etc.) of the pathway or diagram.
-    A tab-separated file containing gene names and expression data.
+    Two image files (.jpg, .png, etc.) of the pathway or diagram.
+    Two tab-separated files containing gene names and expression data.
 
 ## Output
 
 This tool generates several output files:
 
     A final visualization of the gene expression data on the chosen image, saved as an SVG file.
-    A CSV file with the gene expression data and coordinates.
     A .pkl file storing the value_on_figure objects created during the analysis.
-
-## Requirements
-
-This script requires Python 3.x and the following Python packages:
-
-    pandas
-    matplotlib
-    tkinter
-    numpy
 
 ## Installation
 
-First, ensure that Python 3.x is installed on your system. Then, install the required Python packages using pip:
+First, ensure that Python 3.7 is installed on your system. 
 
-pip install pandas matplotlib tkinter numpy
+Clone this repository using git:
 
-Then, download this repository to your local machine and run the script:
+    git clone https://github.com/username/BioSketchMapper.git
 
-python BioSketchMapper_GUI.py
+Then, install the required Python packages using pip:
+
+    pip install -r requirements.txt
+    
+    python BioSketchMapper_GUI.py
 
 ## Contributions
 
